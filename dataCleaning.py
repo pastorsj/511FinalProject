@@ -5,7 +5,7 @@ import os
 pd.set_option('display.max_columns', None)
 
 os.chdir('/Users/monroefarris/Desktop')
-fileName = 'MERGED2019_20_PP.csv'
+fileName = 'MERGED2014_15_PP.csv'
 originalData = pd.read_csv(fileName)
 cleanData = pd.DataFrame()
 
@@ -51,5 +51,6 @@ cleanData = cleanData[['Year'] + [col for col in cleanData.columns if col != 'Ye
 
 print(cleanData)
 
-cleanData.to_csv('initialCleaning.csv')
+print(cleanData.columns)
+cleanData.to_csv('cleaned2014_15.csv')
 
