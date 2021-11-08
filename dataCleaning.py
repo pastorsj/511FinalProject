@@ -5,14 +5,14 @@ import os
 pd.set_option('display.max_columns', None)
 
 os.chdir('/Users/monroefarris/Desktop')
-fileName = 'MERGED2014_15_PP.csv'
+fileName = 'MERGED2019_20_PP.csv'
 originalData = pd.read_csv(fileName)
 cleanData = pd.DataFrame()
 
 cleanData['University Name'] = originalData['INSTNM']
 cleanData['University City'] = originalData['CITY']
 cleanData['University State'] = originalData['STABBR']
-cleanData['Most Awarded Decree'] = originalData['PREDDEG']
+cleanData['Most Awarded Degree'] = originalData['PREDDEG']
 cleanData['Predominantly Black'] = originalData['PBI']
 cleanData['Admission Rate'] = round(originalData['ADM_RATE'] * 100, 2) 
 cleanData['SAT Average'] = originalData['SAT_AVG']
@@ -31,16 +31,16 @@ cleanData['Completion Rate (4-year institutions'] = round(originalData['C150_4']
 cleanData['Year'] = fileName.split('MERGED')[1].split('_PP')[0]
 
 for i in range(len(cleanData)):
-    if cleanData['Most Awarded Decree'][i] == 3:
-        cleanData['Most Awarded Decree'][i] = "Bachelor's"
-    elif cleanData['Most Awarded Decree'][i] == 2:
-        cleanData['Most Awarded Decree'][i] = "Associate's"
-    elif cleanData['Most Awarded Decree'][i] == 1:
-        cleanData['Most Awarded Decree'][i] = "Certificate"
-    elif cleanData['Most Awarded Decree'][i] == 4:
-        cleanData['Most Awarded Decree'][i] = "Graduate"
-    elif cleanData['Most Awarded Decree'][i] == 0:
-        cleanData['Most Awarded Decree'][i] = "Not Classified"
+    if cleanData['Most Awarded Degree'][i] == 3:
+        cleanData['Most Awarded Degree'][i] = "Bachelor's"
+    elif cleanData['Most Awarded Degree'][i] == 2:
+        cleanData['Most Awarded Degree'][i] = "Associate's"
+    elif cleanData['Most Awarded Degree'][i] == 1:
+        cleanData['Most Awarded Degree'][i] = "Certificate"
+    elif cleanData['Most Awarded Degree'][i] == 4:
+        cleanData['Most Awarded Degree'][i] = "Graduate"
+    elif cleanData['Most Awarded Degree'][i] == 0:
+        cleanData['Most Awarded Degree'][i] = "Not Classified"
 
     if cleanData['Predominantly Black'][i] == 1:
         cleanData['Predominantly Black'][i] = 'YES'
@@ -49,8 +49,11 @@ for i in range(len(cleanData)):
 
 cleanData = cleanData[['Year'] + [col for col in cleanData.columns if col != 'Year']]
 
+cleanData = cleanData[cleanData['Most Awarded Degree'] == "Bachelor's"]
+
+
 print(cleanData)
 
-print(cleanData.columns)
-cleanData.to_csv('cleaned2014_15.csv')
+#print(cleanData.columns)
+cleanData.to_csv('cleaned2019_20.csv')
 
