@@ -1,0 +1,162 @@
+---
+title: "Exploratory Data Analysis"
+author: "Sam Pastoriza, Haley Roberts, Monroe Farris"
+date: "11/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require("pacman")) {
+  install.packages("pacman")
+}
+
+pacman::p_load(tidyverse, ggplot2, ggthemes, gganimate, gifski, png)
+```
+
+## Explore the data
+
+Plot histograms side by side, 
+Linear regression
+
+```{r}
+df <- read.csv('data/finalCleanedData.csv')
+df <- df %>% select(-X, -Unnamed..0)
+head(df)
+
+single.out.colleges <- c('Georgetown University', 'Rose-Hulman Institute of Technology', 'Harvard University', 'Georgia Institute of Technology', 'Brown University')
+
+names(df)
+```
+
+## Check for bias in the data
+```{r}
+# Basic distribution of SAT scores
+hist(df$SAT.Average, main = 'Distribution of Average SAT score')
+```
+
+```{r}
+# Plot relationship between admissions rate and average SAT score for 2014-2015
+df %>% 
+  filter(Year == '2014_15') %>%
+  drop_na(Admission.Rate) %>% 
+  drop_na(SAT.Average) %>%
+  plotly::plot_ly(x = ~SAT.Average, 
+                  y = ~Admission.Rate, 
+                  text = ~University.Name,
+                  hoverinfo = 'text',
+                  marker = list(color = 'green'), 
+                  type = 'scatter', 
+                  mode = 'markers')
+```
+
+```{r}
+# Plot relationship between admissions rate and average SAT score for 2019-2020
+df %>% 
+  filter(Year == '2019_20') %>%
+  drop_na(Admission.Rate) %>% 
+  drop_na(SAT.Average) %>%
+  plotly::plot_ly(x = ~SAT.Average, 
+                  y = ~Admission.Rate, 
+                  text = ~University.Name,
+                  hoverinfo = 'text',
+                  marker = list(color = 'green'), 
+                  type = 'scatter', 
+                  mode = 'markers') %>%
+     plotly::layout(title = 'Admissions rate vs SAT Average', 
+                    xaxis = list(title = 'Average SAT Score'), 
+                    yaxis = list(title = 'Admissions Rate'))
+```
+
+```{r}
+# Plot admissions rate and average SAT score over time
+df.clean <- df %>% 
+  drop_na(Admission.Rate) %>% 
+  drop_na(SAT.Average) %>%
+  transform(Year = as.integer(substr(Year, 0, 4)))
+head(df.clean)
+  
+(p <- ggplot(
+  data = df.clean,
+  aes(x = SAT.Average, y=Admission.Rate)) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  labs(x = "Average SAT Score", y = "Admissions Rate") + 
+  transition_time(Year) + 
+  labs(title = 'Year: {as.integer(frame_time)}')) + 
+  theme_fivethirtyeight()
+```
+
+```{r}
+# Plot most awarded degree
+df.clean <- df %>%
+  drop_na(Most.Awarded.Degree)
+
+head(df.clean)
+
+# This was not helpful...
+(p <- ggplot(df.clean, aes(Most.Awarded.Degree)) + 
+    geom_bar() +
+    theme_fivethirtyeight())
+```
+
+``` {r}
+# Plot SAT average versus completion
+# This needs to be updated to account for graduation time
+df %>% 
+  filter(Year == '2014_15') %>%
+  drop_na(Completion.Rate..4.year.institutions) %>% 
+  drop_na(SAT.Average) %>%
+  transform(Color = ifelse(University.Name %in% single.out.colleges, 'red', 'blue')) %>%
+  plotly::plot_ly(x = ~SAT.Average, 
+                  y = ~Completion.Rate..4.year.institutions, 
+                  text = ~University.Name,
+                  color = ~Color,
+                  hoverinfo = 'text',
+                  marker = list(color=c('red', 'blue', 'green')),
+                  type = 'scatter', 
+                  mode = 'markers') %>%
+     plotly::layout(title = 'Completion Rate vs SAT Average', 
+                    xaxis = list(title = 'Average SAT Score'), 
+                    yaxis = list(title = 'Completion Rate'))
+```
+
+``` {r}
+# Plot ACT average versus completion
+# This needs to be updated to account for graduation time
+df %>% 
+  filter(Year == '2014_15') %>%
+  drop_na(Completion.Rate..4.year.institutions) %>% 
+  drop_na(ACT.Cumulative.Average) %>%
+  transform(Color = ifelse(University.Name %in% single.out.colleges, 'red', 'blue')) %>%
+  plotly::plot_ly(x = ~ACT.Cumulative.Average, 
+                  y = ~Completion.Rate..4.year.institutions, 
+                  text = ~University.Name,
+                  color = ~Color,
+                  hoverinfo = 'text',
+                  marker = list(color=c('red', 'blue', 'green')),
+                  type = 'scatter', 
+                  mode = 'markers') %>%
+     plotly::layout(title = 'Completion Rate vs ACT Average', 
+                    xaxis = list(title = 'Average ACT Score'), 
+                    yaxis = list(title = 'Completion Rate'))
+```
+
+``` {r}
+# Plot average cost versus completion
+df %>% 
+  filter(Year == '2014_15') %>%
+  drop_na(Completion.Rate..4.year.institutions) %>% 
+  drop_na(Average.Cost.per.Academic.Year) %>%
+  transform(Color = ifelse(University.Name %in% single.out.colleges, 'red', 'blue')) %>%
+  plotly::plot_ly(x = ~Average.Cost.per.Academic.Year, 
+                  y = ~Completion.Rate..4.year.institutions, 
+                  color = ~Color,
+                  text = ~University.Name,
+                  hoverinfo = 'text',
+                  marker = list(color=c('red', 'blue', 'green')),
+                  type = 'scatter', 
+                  mode = 'markers') %>%
+     plotly::layout(title = 'Completion Rate vs Average Cost', 
+                    xaxis = list(title = 'Average Cost'), 
+                    yaxis = list(title = 'Completion Rate'))
+```
