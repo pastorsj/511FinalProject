@@ -420,7 +420,7 @@ cubic = lm(Completion.Rate..4.year.institutions~SAT.Average +
                   marker = list(color = factor(merged.df$Color, labels = c('black', 'red'))),
                   hoverinfo = 'text',
                   hovertemplate = paste('<b>Name</b>: %{text}',
-                                        '<br><b>SAT Score</b>: $%{x}',
+                                        '<br><b>SAT Score</b>: %{x}',
                                         '<br><b>Completion Rate</b>: %{y}%'),
                   text = ~University.Name) %>%
   plotly::layout(title = 'SAT Average vs Completion Rate', 
@@ -466,7 +466,7 @@ cubic = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average +
                   marker = list(color = factor(merged.df$Color, labels = c('black', 'red'))),
                   hoverinfo = 'text',
                   hovertemplate = paste('<b>Name</b>: %{text}',
-                                        '<br><b>ACT Score</b>: $%{x}',
+                                        '<br><b>ACT Score</b>: %{x}',
                                         '<br><b>Completion Rate</b>: %{y}%'),
                   text = ~University.Name) %>%
   plotly::layout(title = 'ACT Score vs Completion Rate', 
@@ -538,7 +538,7 @@ cubic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment +
                   marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
                   hoverinfo = 'text',
                   hovertemplate = paste('<b>Name</b>: %{text}',
-                                        '<br><b>Enrollment</b>: $%{x}',
+                                        '<br><b>Enrollment</b>: %{x}',
                                         '<br><b>Completion Rate</b>: %{y}%'),
                   text = ~University.Name) %>%
   plotly::layout(title = 'Enrollment vs Completion Rate', 
