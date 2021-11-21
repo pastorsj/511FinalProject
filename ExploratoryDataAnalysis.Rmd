@@ -1,0 +1,633 @@
+---
+title: "Exploratory Data Analysis"
+author: "Sam Pastoriza, Haley Roberts, Monroe Farris"
+date: "11/21/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require("pacman")) {
+  install.packages("pacman")
+}
+
+pacman::p_load(tidyverse, ggplot2, ggthemes, gganimate, gifski, png, htmlwidgets)
+# Todo
+# Normalize the axis for these basic plots
+```
+
+## Explore the data
+
+```{r}
+df <- read.csv('data/finalCleanedData.csv')
+single.out.colleges <- c('Georgetown University', 'Rose-Hulman Institute of Technology', 'Georgia Institute of Technology-Main Campus', 'University of Virginia-Main Campus', 'University of Phoenix-Arizona')
+
+df <- df %>% 
+  select(-X, -Unnamed..0) %>%
+  transform(Color = ifelse(University.Name %in% single.out.colleges, 'Single', 'Normal')) %>%
+  transform(Color = as.factor(Color),
+            Year = as.factor(Year),
+            University.State = as.factor(University.State))
+# Preview of the data
+head(df)
+# Singled out columns
+df[df$Color == 'Single',]
+
+# Columns
+names(df)
+```
+# Basic
+### Average SAT Scores over time
+```{r}
+df.clean.sat <- df %>%
+  drop_na(SAT.Average)
+
+par(mfrow = c(2,3))
+# Side by side distribution over time
+score <- df.clean.sat[df.clean.sat$Year == '2014_15',]$SAT.Average
+hist(score, col = 'orange', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2014 - 2015)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.sat[df.clean.sat$Year == '2015_16',]$SAT.Average
+hist(score, col = 'cyan', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2015 - 2016)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.sat[df.clean.sat$Year == '2016_17',]$SAT.Average
+hist(score, col = 'green', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2016 - 2017)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.sat[df.clean.sat$Year == '2017_18',]$SAT.Average
+hist(score, col = 'blue', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2017 - 2018)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.sat[df.clean.sat$Year == '2018_19',]$SAT.Average
+hist(score, col = 'magenta', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2018 - 2019)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.sat[df.clean.sat$Year == '2019_20',]$SAT.Average
+hist(score, col = 'gold', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2019 - 2020)')
+abline(v = mean(score), col = "red", lwd = 2)
+dev.copy(png, filename = 'visualizations/sat_score_histogram.png', width = 1200, height = 800)
+dev.off()
+```
+
+```{r}
+par(mfrow = c(2,3))
+# Side by side distribution over time
+boxplot(df.clean.sat[df.clean.sat$Year == '2014_15',]$SAT.Average, col = 'orange', xlab = 'SAT Score', main = 'Average SAT (2014 - 2015)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2015_16',]$SAT.Average, col = 'red', xlab = 'SAT Score', main = 'Average SAT (2015 - 2016)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2016_17',]$SAT.Average, col = 'green', xlab = 'SAT Score', main = 'Average SAT (2016 - 2017)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2017_18',]$SAT.Average, col = 'blue', xlab = 'SAT Score', main = 'Average SAT (2017 - 2018)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2018_19',]$SAT.Average, col = 'magenta', xlab = 'SAT Score', main = 'Average SAT (2018 - 2019)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2019_20',]$SAT.Average, col = 'gold', xlab = 'SAT Score', main = 'Average SAT (2019 - 2020)')
+dev.copy(png, filename = 'visualizations/sat_score_boxplot.png', width = 1200, height = 800)
+dev.off()
+```
+
+
+### Average ACT Scores over time
+```{r}
+df.clean.act <- df %>%
+  drop_na(ACT.Cumulative.Average)
+
+par(mfrow = c(2,3))
+# Side by side distribution over time
+score <- df.clean.act[df.clean.act$Year == '2014_15',]$ACT.Cumulative.Average
+hist(score, col = 'orange', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2014 - 2015)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.act[df.clean.act$Year == '2015_16',]$ACT.Cumulative.Average
+hist(score, col = 'cyan', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2015 - 2016)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.act[df.clean.act$Year == '2016_17',]$ACT.Cumulative.Average
+hist(score, col = 'green', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2016 - 2017)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.act[df.clean.act$Year == '2017_18',]$ACT.Cumulative.Average
+hist(score, col = 'blue', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2017 - 2018)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.act[df.clean.act$Year == '2018_19',]$ACT.Cumulative.Average
+hist(score, col = 'magenta', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2018 - 2019)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+score <- df.clean.act[df.clean.act$Year == '2019_20',]$ACT.Cumulative.Average
+hist(score, col = 'gold', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2019 - 2020)')
+abline(v = mean(score), col = "red", lwd = 2)
+dev.copy(png, filename = 'visualizations/act_score_histogram.png', width = 1200, height = 800)
+dev.off()
+```
+
+```{r}
+par(mfrow = c(2,3))
+# Side by side distribution over time
+boxplot(df.clean.act[df.clean.act$Year == '2014_15',]$ACT.Cumulative.Average, col = 'orange', xlab = 'ACT Score', main = 'Average ACT (2014 - 2015)')
+boxplot(df.clean.act[df.clean.act$Year == '2015_16',]$ACT.Cumulative.Average, col = 'red', xlab = 'ACT Score', main = 'Average ACT (2015 - 2016)')
+boxplot(df.clean.act[df.clean.act$Year == '2016_17',]$ACT.Cumulative.Average, col = 'green', xlab = 'ACT Score', main = 'Average ACT (2016 - 2017)')
+boxplot(df.clean.act[df.clean.act$Year == '2017_18',]$ACT.Cumulative.Average, col = 'blue', xlab = 'ACT Score', main = 'Average ACT (2017 - 2018)')
+boxplot(df.clean.act[df.clean.act$Year == '2018_19',]$ACT.Cumulative.Average, col = 'magenta', xlab = 'ACT Score', main = 'Average ACT (2018 - 2019)')
+boxplot(df.clean.act[df.clean.act$Year == '2019_20',]$ACT.Cumulative.Average, col = 'gold', xlab = 'ACT Score', main = 'Average ACT (2019 - 2020)')
+dev.copy(png, filename = 'visualizations/act_score_boxplot.png', width = 1200, height = 800)
+dev.off()
+```
+
+### Average Cost over time
+```{r}
+df.clean.cost <- df %>%
+  drop_na(Average.Cost.per.Academic.Year)
+
+par(mfrow = c(2,3))
+# Side by side distribution over time
+cost <- df.clean.cost[df.clean.cost$Year == '2014_15',]$Average.Cost.per.Academic.Year
+hist(cost, col = 'orange', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2014 - 2015)')
+abline(v = mean(cost), col = "red", lwd = 2)
+
+cost <- df.clean.cost[df.clean.cost$Year == '2015_16',]$Average.Cost.per.Academic.Year
+hist(cost, col = 'cyan', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2015 - 2016)')
+abline(v = mean(cost), col = "red", lwd = 2)
+
+cost <- df.clean.cost[df.clean.cost$Year == '2016_17',]$Average.Cost.per.Academic.Year
+hist(cost, col = 'green', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2016 - 2017)')
+abline(v = mean(cost), col = "red", lwd = 2)
+
+cost <- df.clean.cost[df.clean.cost$Year == '2017_18',]$Average.Cost.per.Academic.Year
+hist(cost, col = 'blue', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2017 - 2018)')
+abline(v = mean(cost), col = "red", lwd = 2)
+
+cost <- df.clean.cost[df.clean.cost$Year == '2018_19',]$Average.Cost.per.Academic.Year
+hist(cost, col = 'magenta', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2018 - 2019)')
+abline(v = mean(cost), col = "red", lwd = 2)
+
+cost <- df.clean.cost[df.clean.cost$Year == '2019_20',]$Average.Cost.per.Academic.Year
+hist(cost, col = 'gold', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2019 - 2020)')
+abline(v = mean(cost), col = "red", lwd = 2)
+dev.copy(png, filename = 'visualizations/average_cost_histogram.png', width = 1200, height = 800)
+dev.off()
+```
+
+```{r}
+par(mfrow = c(2,3))
+# Side by side distribution over time
+boxplot(df.clean.cost[df.clean.cost$Year == '2014_15',]$Average.Cost.per.Academic.Year, col = 'orange', xlab = 'Average Cost', main = 'Average Cost (2014 - 2015)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2015_16',]$Average.Cost.per.Academic.Year, col = 'red', xlab = 'Average Cost', main = 'Average Cost (2015 - 2016)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2016_17',]$Average.Cost.per.Academic.Year, col = 'green', xlab = 'Average Cost', main = 'Average Cost (2016 - 2017)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2017_18',]$Average.Cost.per.Academic.Year, col = 'blue', xlab = 'Average Cost', main = 'Average Cost (2017 - 2018)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2018_19',]$Average.Cost.per.Academic.Year, col = 'magenta', xlab = 'Average Cost', main = 'Average Cost (2018 - 2019)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2019_20',]$Average.Cost.per.Academic.Year, col = 'gold', xlab = 'Average Cost', main = 'Average Cost (2019 - 2020)')
+dev.copy(png, filename = 'visualizations/average_cost_boxplot.png', width = 1200, height = 800)
+dev.off()
+```
+
+
+### Admissions Rate over time
+```{r}
+df.clean.rate <- df %>%
+  drop_na(Admission.Rate)
+
+par(mfrow = c(2,3))
+# Side by side distribution over time
+rate <- df.clean.rate[df.clean.rate$Year == '2014_15',]$Admission.Rate
+hist(rate, col = 'orange', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2014 - 2015)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2015_16',]$Admission.Rate
+hist(rate, col = 'cyan', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2015 - 2016)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2016_17',]$Admission.Rate
+hist(rate, col = 'green', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2016 - 2017)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2017_18',]$Admission.Rate
+hist(rate, col = 'blue', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2017 - 2018)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2018_19',]$Admission.Rate
+hist(rate, col = 'magenta', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2018 - 2019)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2019_20',]$Admission.Rate
+hist(rate, col = 'gold', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2019 - 2020)')
+abline(v = mean(rate), col = "red", lwd = 2)
+dev.copy(png, filename = 'visualizations/admissions_rate_histogram.png', width = 1200, height = 800)
+dev.off()
+```
+
+```{r}
+par(mfrow = c(2,3))
+# Side by side distribution over time
+boxplot(df.clean.rate[df.clean.rate$Year == '2014_15',]$Admission.Rate, col = 'orange', xlab = 'Admission Rate', main = 'Admission Rate (2014 - 2015)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2015_16',]$Admission.Rate, col = 'red', xlab = 'Admission Rate', main = 'Admission Rate (2015 - 2016)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2016_17',]$Admission.Rate, col = 'green', xlab = 'Admission Rate', main = 'Admission Rate (2016 - 2017)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2017_18',]$Admission.Rate, col = 'blue', xlab = 'Admission Rate', main = 'Admission Rate (2017 - 2018)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2018_19',]$Admission.Rate, col = 'magenta', xlab = 'Admission Rate', main = 'Admission Rate (2018 - 2019)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2019_20',]$Admission.Rate, col = 'gold', xlab = 'Admission Rate', main = 'Admission Rate (2019 - 2020)')
+dev.copy(png, filename = 'visualizations/admissions_rate_boxplot.png', width = 1200, height = 800)
+dev.off()
+```
+
+
+### Completion Rate over time
+```{r}
+df.clean.rate <- df %>%
+  drop_na(Completion.Rate..4.year.institutions) %>%
+  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
+
+par(mfrow = c(2,3))
+# Side by side distribution over time
+rate <- df.clean.rate[df.clean.rate$Year == '2014_15',]$Completion.Rate..4.year.institutions
+hist(rate, col = 'orange', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2014 - 2015)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2015_16',]$Completion.Rate..4.year.institutions
+hist(rate, col = 'cyan', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2015 - 2016)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2016_17',]$Completion.Rate..4.year.institutions
+hist(rate, col = 'green', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2016 - 2017)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2017_18',]$Completion.Rate..4.year.institutions
+hist(rate, col = 'blue', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2017 - 2018)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2018_19',]$Completion.Rate..4.year.institutions
+hist(rate, col = 'magenta', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2018 - 2019)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.rate[df.clean.rate$Year == '2019_20',]$Completion.Rate..4.year.institutions
+hist(rate, col = 'gold', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2019 - 2020)')
+abline(v = mean(rate), col = "red", lwd = 2)
+dev.copy(png, filename = 'visualizations/completion_rate_histogram.png', width = 1200, height = 800)
+dev.off()
+```
+
+```{r}
+par(mfrow = c(2,3))
+# Side by side distribution over time
+boxplot(df.clean.rate[df.clean.rate$Year == '2014_15',]$Completion.Rate..4.year.institutions, col = 'orange', xlab = 'Admission Rate', main = 'Admission Rate (2014 - 2015)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2015_16',]$Completion.Rate..4.year.institutions, col = 'red', xlab = 'Admission Rate', main = 'Admission Rate (2015 - 2016)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2016_17',]$Completion.Rate..4.year.institutions, col = 'green', xlab = 'Admission Rate', main = 'Admission Rate (2016 - 2017)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2017_18',]$Completion.Rate..4.year.institutions, col = 'blue', xlab = 'Admission Rate', main = 'Admission Rate (2017 - 2018)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2018_19',]$Completion.Rate..4.year.institutions, col = 'magenta', xlab = 'Admission Rate', main = 'Admission Rate (2018 - 2019)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2019_20',]$Completion.Rate..4.year.institutions, col = 'gold', xlab = 'Admission Rate', main = 'Admission Rate (2019 - 2020)')
+dev.copy(png, filename = 'visualizations/completion_rate_boxplot.png', width = 1200, height = 800)
+dev.off()
+```
+
+
+### Student Population over time
+```{r}
+df.clean.pop <- df %>%
+  drop_na(Undergraduate.Enrollment)
+
+par(mfrow = c(2,3))
+# Side by side distribution over time
+pop <- df.clean.pop[df.clean.pop$Year == '2014_15',]$Undergraduate.Enrollment
+hist(pop, col = 'orange', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2014 - 2015)')
+abline(v = mean(pop), col = "red", lwd = 2)
+
+pop <- df.clean.pop[df.clean.pop$Year == '2015_16',]$Undergraduate.Enrollment
+hist(pop, col = 'cyan', xlab = paste('Undergrad Enrollment (', round(mean(rate)), ')', sep = ''), main = 'Enrollment (2015 - 2016)')
+abline(v = mean(pop), col = "red", lwd = 2)
+
+pop <- df.clean.pop[df.clean.pop$Year == '2016_17',]$Undergraduate.Enrollment
+hist(pop, col = 'green', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2016 - 2017)')
+abline(v = mean(pop), col = "red", lwd = 2)
+
+rate <- df.clean.pop[df.clean.pop$Year == '2017_18',]$Undergraduate.Enrollment
+hist(rate, col = 'blue', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2017 - 2018)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+rate <- df.clean.pop[df.clean.pop$Year == '2018_19',]$Undergraduate.Enrollment
+hist(rate, col = 'magenta', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2018 - 2019)')
+abline(v = mean(rate), col = "red", lwd = 2)
+
+pop <- df.clean.pop[df.clean.pop$Year == '2019_20',]$Undergraduate.Enrollment
+hist(pop, col = 'gold', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2019 - 2020)')
+abline(v = mean(pop), col = "red", lwd = 2)
+dev.copy(png, filename = 'visualizations/student_population_histogram.png', width = 1200, height = 800)
+dev.off()
+```
+
+```{r}
+par(mfrow = c(2,3))
+# Side by side distribution over time
+boxplot(df.clean.pop[df.clean.pop$Year == '2014_15',]$Undergraduate.Enrollment, col = 'orange', xlab = 'Enrollment', main = 'Enrollment (2014 - 2015)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2015_16',]$Undergraduate.Enrollment, col = 'red', xlab = 'Enrollment', main = 'Enrollment (2015 - 2016)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2016_17',]$Undergraduate.Enrollment, col = 'green', xlab = 'Enrollment', main = 'Enrollment (2016 - 2017)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2017_18',]$Undergraduate.Enrollment, col = 'blue', xlab = 'Enrollment', main = 'Enrollment (2017 - 2018)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2018_19',]$Undergraduate.Enrollment, col = 'magenta', xlab = 'Enrollment', main = 'Enrollment (2018 - 2019)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2019_20',]$Undergraduate.Enrollment, col = 'gold', xlab = 'Enrollment', main = 'Enrollment (2019 - 2020)')
+dev.copy(png, filename = 'visualizations/student_population_boxplot.png', width = 1200, height = 800)
+dev.off()
+```
+
+
+# Interactive
+### SAT Score vs Admissions Rate
+```{r}
+# Plot relationship between admissions rate and average SAT score for 2014-2015
+df.clean <- df %>% 
+  select(Color, University.Name, Admission.Rate, SAT.Average, Year) %>%
+  filter(Year == '2014_15') %>%
+  drop_na(SAT.Average, Admission.Rate)
+
+df.clean %>%
+  plotly::plot_ly(x = ~SAT.Average, 
+                  y = ~Admission.Rate, 
+                  text = ~University.Name,
+                  hoverinfo = 'text',
+                  marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
+                  type = 'scatter', 
+                  mode = 'markers') %>%
+     plotly::layout(title = 'Admissions rate vs SAT Average (2014-2015)', 
+                    xaxis = list(title = 'Average SAT Score'), 
+                    yaxis = list(title = 'Admissions Rate'))
+```
+
+```{r}
+# Plot relationship between admissions rate and average SAT score for 2019-2020
+df.clean <- df %>% 
+  select(Color, University.Name, Admission.Rate, SAT.Average, Year) %>%
+  filter(Year == '2019_20') %>%
+  drop_na(SAT.Average, Admission.Rate)
+
+df.clean %>%
+  plotly::plot_ly(x = ~SAT.Average, 
+                  y = ~Admission.Rate, 
+                  text = ~University.Name,
+                  hoverinfo = 'text',
+                  marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
+                  type = 'scatter', 
+                  mode = 'markers') %>%
+     plotly::layout(title = 'Admissions rate vs SAT Average (2019-2020)', 
+                    xaxis = list(title = 'Average SAT Score'), 
+                    yaxis = list(title = 'Admissions Rate'))
+```
+
+### SAT Score vs Admissions Rate (Animated)
+```{r}
+# Plot admissions rate and average SAT score over time
+df.clean <- df %>% 
+  drop_na(Admission.Rate) %>% 
+  drop_na(SAT.Average) %>%
+  transform(Year = as.integer(substr(Year, 0, 4)))
+head(df.clean)
+  
+(p <- ggplot(
+  data = df.clean,
+  aes(x = SAT.Average, y = Admission.Rate)) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  labs(x = "Average SAT Score", y = "Admissions Rate") + 
+  transition_time(Year) + 
+  labs(title = 'Year: {as.integer(frame_time)}')) + 
+  theme_fivethirtyeight()
+```
+
+### SAT Score vs Completion Rate
+``` {r}
+# Plot SAT average versus completion
+df.2014.admissions <- df %>%
+  select(Year, SAT.Average, University.Name, Color) %>%
+  filter(Year == '2014_15')
+
+df.2018.grads <- df %>%
+  select(Year, Completion.Rate..4.year.institutions, University.Name) %>%
+  filter(Year == '2017_18')
+
+merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>%
+  rename(Year.Admit = Year.x,
+         Year.Graduate = Year.y) %>%
+  drop_na(SAT.Average, Completion.Rate..4.year.institutions) %>%
+  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
+
+merged.df
+
+line.fit.b = list(dash="solid", width = 3, color='blue')
+line.fit.r = list(dash="solid", width = 3, color='red')
+line.fit.g = list(dash="solid", width = 3, color='chartreuse')
+linear = lm(Completion.Rate..4.year.institutions~SAT.Average, data = merged.df)
+quadratic = lm(Completion.Rate..4.year.institutions~SAT.Average + I(SAT.Average ^ 2), data = merged.df)
+cubic = lm(Completion.Rate..4.year.institutions~SAT.Average + 
+             I(SAT.Average ^ 2) + 
+             I(SAT.Average ^ 3), data = merged.df)
+
+(p <- merged.df %>%
+  plotly::plot_ly(x = ~SAT.Average) %>%
+  plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
+                  marker = list(color = factor(merged.df$Color, labels = c('black', 'red'))),
+                  hoverinfo = 'text',
+                  hovertemplate = paste('<b>Name</b>: %{text}',
+                                        '<br><b>SAT Score</b>: %{x}',
+                                        '<br><b>Completion Rate</b>: %{y}%'),
+                  text = ~University.Name) %>%
+  plotly::layout(title = 'SAT Average vs Completion Rate', 
+                    xaxis = list(title = 'SAT Average'), 
+                    yaxis = list(title = 'Completion Rate')) %>%
+  plotly::add_lines(x = ~SAT.Average, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~SAT.Average, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~SAT.Average, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+saveWidget(p, "visualizations/sat_score_vs_completion.html", selfcontained = F, libdir = "lib")
+```
+
+### ACT Score vs Completion
+``` {r}
+# Plot ACT average versus completion
+df.2014.admissions <- df %>%
+  select(Year, ACT.Cumulative.Average, University.Name, Color) %>%
+  filter(Year == '2014_15')
+
+df.2018.grads <- df %>%
+  select(Year, Completion.Rate..4.year.institutions, University.Name) %>%
+  filter(Year == '2017_18')
+
+merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>%
+  rename(Year.Admit = Year.x,
+         Year.Graduate = Year.y) %>%
+  drop_na(ACT.Cumulative.Average, Completion.Rate..4.year.institutions) %>%
+  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
+
+merged.df
+
+line.fit.b = list(dash="solid", width = 3, color='blue')
+line.fit.r = list(dash="solid", width = 3, color='red')
+line.fit.g = list(dash="solid", width = 3, color='chartreuse')
+linear = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average, data = merged.df)
+quadratic = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average + I(ACT.Cumulative.Average ^ 2), data = merged.df)
+cubic = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average + 
+             I(ACT.Cumulative.Average ^ 2) + 
+             I(ACT.Cumulative.Average ^ 3), data = merged.df)
+
+(p <- merged.df %>% 
+  plotly::plot_ly(x = ~ACT.Cumulative.Average) %>%
+  plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
+                  marker = list(color = factor(merged.df$Color, labels = c('black', 'red'))),
+                  hoverinfo = 'text',
+                  hovertemplate = paste('<b>Name</b>: %{text}',
+                                        '<br><b>ACT Score</b>: %{x}',
+                                        '<br><b>Completion Rate</b>: %{y}%'),
+                  text = ~University.Name) %>%
+  plotly::layout(title = 'ACT Score vs Completion Rate', 
+                    xaxis = list(title = 'ACT Score'), 
+                    yaxis = list(title = 'Completion Rate')) %>%
+  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+saveWidget(p, "visualizations/act_score_vs_completion.html", selfcontained = F, libdir = "lib")
+```
+
+### Average Cost vs Completion
+``` {r}
+# Plot average cost versus completion
+df.clean <- df %>% 
+  select(Color, University.Name, Completion.Rate..4.year.institutions, Average.Cost.per.Academic.Year, Year) %>%
+  filter(Year == '2019_20') %>%
+  drop_na(Completion.Rate..4.year.institutions, Average.Cost.per.Academic.Year) %>%
+  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
+
+line.fit.b = list(dash="solid", width = 3, color='blue')
+line.fit.r = list(dash="solid", width = 3, color='red')
+line.fit.g = list(dash="solid", width = 3, color='chartreuse')
+linear = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year, data = df.clean)
+quadratic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year + I(Average.Cost.per.Academic.Year ^ 2), data = df.clean)
+cubic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year + 
+             I(Average.Cost.per.Academic.Year ^ 2) + 
+             I(Average.Cost.per.Academic.Year ^ 3), data = df.clean)
+
+(p <- df.clean %>%
+  plotly::plot_ly(x = ~Average.Cost.per.Academic.Year) %>%
+  plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
+                  marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
+                  hoverinfo = 'text',
+                  hovertemplate = paste('<b>Name</b>: %{text}',
+                                        '<br><b>Cost</b>: $%{x}',
+                                        '<br><b>Completion Rate</b>: %{y}%'),
+                  text = ~University.Name) %>%
+  plotly::layout(title = 'Average Cost vs Completion Rate', 
+                    xaxis = list(title = 'Average Cost'), 
+                    yaxis = list(title = 'Completion Rate')) %>%
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+saveWidget(p, "visualizations/cost_vs_completion.html", selfcontained = F, libdir = "lib")
+```
+
+### Undergraduate Enrollment vs Completion
+``` {r}
+# Plot enrollment versus completion
+df.clean <- df %>% 
+  select(Color, University.Name, Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Year) %>%
+  filter(Year == '2019_20') %>%
+  drop_na(Completion.Rate..4.year.institutions, Undergraduate.Enrollment) %>%
+  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
+
+line.fit.b = list(dash="solid", width = 3, color='blue')
+line.fit.r = list(dash="solid", width = 3, color='red')
+line.fit.g = list(dash="solid", width = 3, color='chartreuse')
+linear = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment, data = df.clean)
+quadratic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + I(Undergraduate.Enrollment ^ 2), data = df.clean)
+cubic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + 
+             I(Undergraduate.Enrollment ^ 2) + 
+             I(Undergraduate.Enrollment ^ 3), data = df.clean)
+
+(p <- df.clean %>%
+  plotly::plot_ly(x = ~Undergraduate.Enrollment) %>%
+  plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
+                  marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
+                  hoverinfo = 'text',
+                  hovertemplate = paste('<b>Name</b>: %{text}',
+                                        '<br><b>Enrollment</b>: %{x}',
+                                        '<br><b>Completion Rate</b>: %{y}%'),
+                  text = ~University.Name) %>%
+  plotly::layout(title = 'Enrollment vs Completion Rate', 
+                    xaxis = list(title = 'Enrollment'), 
+                    yaxis = list(title = 'Completion Rate')) %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+saveWidget(p, "visualizations/enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
+```
+
+### Average Cost/Enrollment vs Completion
+``` {r}
+# Plot average cost/enrollment versus completion
+df.clean <- df %>% 
+  select(Color, University.Name, Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Average.Cost.per.Academic.Year, Year) %>%
+  filter(Year == '2019_20') %>%
+  drop_na(Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Average.Cost.per.Academic.Year) %>%
+  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
+
+(p <- df.clean %>%
+  plotly::plot_ly(x = ~Undergraduate.Enrollment) %>%
+  plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
+                  marker = list(color = ~Average.Cost.per.Academic.Year, colorscale = 'Rainbow', showscale = TRUE),
+                  hoverinfo = 'text',
+                  hovertemplate = paste('<b>Name</b>: %{text}',
+                                        '<br><b>Cost</b>: $%{marker.color}',
+                                        '<br><b>Completion Rate</b>: %{y}%',
+                                        '<br><b>Enrollment</b>: %{x}'),
+                  text = ~University.Name) %>%
+  plotly::layout(title = 'Enrollment vs Completion Rate (including Cost)', 
+                    xaxis = list(title = 'Enrollment'), 
+                    yaxis = list(title = 'Completion Rate')))
+saveWidget(p, "visualizations/enrollment_cost_vs_completion.html", selfcontained = F, libdir = "lib")
+```
+
+``` {r}
+# Plot average cost/enrollment versus completion
+df.clean <- df %>% 
+  select(Color, University.Name, Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Average.Cost.per.Academic.Year, Year) %>%
+  filter(Year == '2019_20') %>%
+  drop_na(Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Average.Cost.per.Academic.Year) %>%
+  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
+
+(p <- df.clean %>%
+  plotly::plot_ly(x = ~Average.Cost.per.Academic.Year) %>%
+  plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
+                  marker = list(color = ~Undergraduate.Enrollment, colorscale = 'Rainbow', showscale = TRUE),
+                  hoverinfo = 'text',
+                  hovertemplate = paste('<b>Name</b>: %{text}',
+                                        '<br><b>Cost</b>: $%{x}',
+                                        '<br><b>Completion Rate</b>: %{y}%',
+                                        '<br><b>Enrollment</b>: %{marker.color}'),
+                  text = ~University.Name) %>%
+  plotly::layout(title = 'Cost vs Completion Rate (including Enrollment)', 
+                    xaxis = list(title = 'Average Cost'), 
+                    yaxis = list(title = 'Completion Rate')))
+saveWidget(p, "visualizations/cost_enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
+```
+
+
+``` {r}
+# Plot average cost versus completion
+df.clean <- df %>% 
+  select(Color, University.Name, Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Year) %>%
+  filter(Year == '2014_15') %>%
+  drop_na(Completion.Rate..4.year.institutions, Undergraduate.Enrollment)
+  # %>% filter(University.Name != 'University of Phoenix-Arizona')
+
+line.fit.b = list(dash="solid", width = 3, color='blue')
+line.fit.r = list(dash="solid", width = 3, color='red')
+line.fit.g = list(dash="solid", width = 3, color='chartreuse')
+linear = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment, data = df.clean)
+quadratic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + I(Undergraduate.Enrollment ^ 2), data = df.clean)
+cubic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + 
+             I(Undergraduate.Enrollment ^ 2) + 
+             I(Undergraduate.Enrollment ^ 3), data = df.clean)
+
+(p <- df.clean %>%
+  plotly::plot_ly(x = ~Undergraduate.Enrollment) %>%
+  plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
+                  marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
+                  hoverinfo = 'text',
+                  text = ~University.Name) %>%
+  plotly::layout(title = 'Enrollment vs Completion Rate', 
+                    xaxis = list(title = 'Enrollment'), 
+                    yaxis = list(title = 'Completion Rate')) %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+saveWidget(p, "visualizations/enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
+```
