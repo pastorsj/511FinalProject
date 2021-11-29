@@ -1,0 +1,384 @@
+---
+title: "Project"
+author: "Haley Eckert"
+date: "11/21/2021"
+output: html_document
+---
+
+## Read in Data
+
+```{r}
+# Read in data
+dataDF <- read.csv("finalCleanedData.csv", stringsAsFactors=TRUE)
+head(dataDF)
+
+# Remove numbering columns (1st & 2nd columns)
+dataDF = subset(dataDF, select = -c(X, Unnamed..0))
+
+# Remove Most Awarded Degree + Race Columns
+dataDF = subset(dataDF, select = -c(Most.Awarded.Degree, 
+                                    Percent.of.Students..White., 
+                                    Percent.of.Students..Black.,
+                                    Percent.of.Students..Hispanic.,
+                                    Percent.of.Students..Asian.))
+
+# View updated data
+head(dataDF)
+```
+
+## Data Cleaning
+
+##### Part 1: Subset 2014-2015 School Year & Add Completion Rate from 2017-2018 School Year
+
+```{r}
+# Subset for 2014-2015 data
+dataDF_14_15 <- dataDF[dataDF$Year == "2014_15",]
+
+# Remove year column from dataDF_14_15
+dataDF_14_15 = subset(dataDF_14_15, select = -c(Year))
+
+# Find if there are any duplicate-named colleges
+dups <- data.frame(table(dataDF_14_15$University.Name))
+listOfDups <- dups[dups$Freq > 1,]
+dataDups <- dataDF_14_15[dataDF_14_15$University.Name %in% listOfDups$Var1,]
+(dataDups <- dataDups[order(dataDups$University.Name),])
+# It appears that the duplicate-named colleges can be uniquely identified by considering name, state, & city
+
+# Subset for 2017-2018 data
+dataDF_17_18 <- dataDF[dataDF$Year == "2017_18",]
+
+# Add 17-18 completion rate to 14-15 data frame
+# (using three-level join as found by uniqueness of duplicates)
+i = 1
+while (i <= nrow(dataDF_14_15)) {
+  UName_i <- dataDF_14_15$University.Name[i]
+  UCity_i <- dataDF_14_15$University.City[i]
+  UState_i <- dataDF_14_15$University.State[i]
+  j = 1
+  while (j <= nrow(dataDF_17_18)) {
+    UName_j <- dataDF_17_18$University.Name[j]
+    UCity_j <- dataDF_17_18$University.City[j]
+    UState_j <- dataDF_17_18$University.State[j]
+    if (UName_i == UName_j & UCity_i == UCity_j & UState_i == UState_j) {
+      dataDF_14_15$Completion.Rate.17_18[i] <- dataDF_17_18$Completion.Rate..4.year.institutions[j]
+      j = nrow(dataDF_17_18)
+    }
+    j = j + 1
+  }
+  i = i + 1
+}
+
+# View dataframe
+head(dataDF_14_15)
+```
+
+##### Part 2: Bin Data (Completion Rate, Regions, School Size)
+
+```{r}
+###########
+# Bin 2017-2018 Completion Rate
+###########
+# See distribution of completion rates
+summary(dataDF_14_15$Completion.Rate.17_18)
+# Create new column with discretized completion rates 
+dataDF_14_15$Comp.Rate.17_18.BIN = cut(dataDF_14_15$Completion.Rate.17_18, 
+                                       c(0,0.4,0.6,100),
+                                       labels=c('Low','Medium','High'))
+# View distribution of binned categories
+table(dataDF_14_15$Comp.Rate.17_18.BIN)
+# Remove any columns with NAs for 2017-2018 completion rate:
+dataDF_14_15 <- dataDF_14_15[!is.na(dataDF_14_15$Comp.Rate.17_18.BIN),]
+
+###########
+# Add column for regions of each school based on University.State
+###########
+# Create new column for region
+dataDF_14_15$Region <- state.region[match(dataDF_14_15$University.State, state.abb)]
+# View distribution of regions
+table(dataDF_14_15$Region)
+
+###########
+# Bin Undergrad Enrollment
+###########
+# See distribution of undergraduate enrollment
+summary(dataDF_14_15$Undergraduate.Enrollment)
+# Create new column with discretized undergraduate enrollments 
+dataDF_14_15$Size = cut(dataDF_14_15$Undergraduate.Enrollment, 
+                                       c(0,400,1000,3000,9000,Inf),
+                                       labels=c('Very Small','Small','Medium','Large','Very Large'))
+# View distribution of binned categories
+table(dataDF_14_15$Size)
+
+### View updated dataframe
+head(dataDF_14_15)
+```
+
+## Linear Regression
+
+##### Create training and testing data sets
+
+```{r}
+# Libraries
+library(caret)
+
+# Set seed
+set.seed(926)
+
+# Create list of samples to include in training data set
+train_samps <- dataDF_14_15$Comp.Rate.17_18.BIN %>% 
+  createDataPartition(p = 0.8, list = FALSE)
+
+# Create training data set
+trainDF <- dataDF_14_15[train_samps, ]
+
+# Create testing data set
+testDF <- dataDF_14_15[-train_samps, ]
+```
+
+
+##### Model 1
+
+```{r}
+# Fit a multivariate regression model to predict completion rate
+model_1 <- lm(Completion.Rate.17_18 ~ 
+                #University.Name +
+                #University.City +
+                #University.State + 
+                #Predominantly.Black +
+                Admission.Rate + 
+                SAT.Average + 
+                SAT.Reading.Mid + 
+                SAT.Math.Mid + 
+                ACT.Cumulative.Average +
+                Undergraduate.Enrollment +
+                Average.Cost.per.Academic.Year + 
+                In.State.Tuition.and.Fees + 
+                Out.of.State.Tuition.and.Fees +
+                #Completion.Rate..4.year.institutions +
+                #Comp.Rate.17_18.BIN +
+                Region,
+                #Size,
+              data = trainDF)
+# View the results of the model
+summary(model_1)
+```
+
+```{r}
+# Make predictions on testing data set using Model 1
+(preds_1 <- predict(model_1, testDF))
+
+# Consider model performance
+# Prediction error (RMSE)
+RMSE(preds_1, testDF$Completion.Rate.17_18)
+# R-square ## R2{caret package}
+R2(preds_1, testDF$Completion.Rate.17_18)
+```
+
+
+##### Model 2: Fit new model with only variables from model 1 with P < 0.25
+
+```{r}
+# Fit a multivariate regression model to predict completion rate
+model_2 <- lm(Completion.Rate.17_18 ~ 
+                #University.Name +
+                #University.City +
+                #University.State + 
+                #Predominantly.Black +
+                Admission.Rate + 
+                SAT.Average + 
+                ##SAT.Reading.Mid + 
+                ##SAT.Math.Mid + 
+                ACT.Cumulative.Average +
+                Undergraduate.Enrollment +
+                Average.Cost.per.Academic.Year + 
+                ##In.State.Tuition.and.Fees + 
+                Out.of.State.Tuition.and.Fees +
+                #Completion.Rate..4.year.institutions +
+                #Comp.Rate.17_18.BIN +
+                Region,
+                #Size,
+              data = trainDF)
+# View the results of the model
+summary(model_2)
+```
+
+## Visualize variables
+
+```{r}
+### Libraries
+library(tidyverse)
+library(ggplot2)
+
+### Visualize: Admission Rate
+dataDF_14_15 %>%
+  ggplot( aes(x = Comp.Rate.17_18.BIN, y = Admission.Rate, fill = Comp.Rate.17_18.BIN)) +
+  geom_boxplot() +
+  ggtitle("Admission Rate per Completion Rate Category")
+
+### Visualize: SAT Average
+# Create dataframe with no missing SAT Average data
+dataDF_14_15_cleanSAT <- dataDF_14_15[!is.na(dataDF_14_15$SAT.Average),]
+# Create graph
+dataDF_14_15_cleanSAT %>%
+  ggplot( aes(x = Comp.Rate.17_18.BIN, y = SAT.Average, fill = Comp.Rate.17_18.BIN)) +
+  geom_boxplot() +
+  ggtitle("Average SAT Score per Completion Rate Category")
+
+### Visualize: Undergrad Enrollment
+# Create dataframe with no missing undergrad enrollment data
+dataDF_14_15_cleanSize <- dataDF_14_15[!is.na(dataDF_14_15$Size),]
+# Version 1 - quantitative data
+dataDF_14_15_cleanSize %>%
+  ggplot( aes(x = Comp.Rate.17_18.BIN, y = Undergraduate.Enrollment, fill = Comp.Rate.17_18.BIN)) +
+  geom_boxplot() +
+  ggtitle("Undergrad Enrollment per Completion Rate Category")
+# Version 2 - binned data
+dataDF_14_15_cleanSize %>%
+  ggplot( aes(fill = Size, y = Size, x = Comp.Rate.17_18.BIN)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("School Size per Completion Rate Category") + 
+  theme(axis.text.y = element_blank()) +
+  xlab("Completion Rate")
+# Version 3 - binned data
+dataDF_14_15_cleanSize %>%
+  ggplot( aes(fill = Comp.Rate.17_18.BIN, y = Comp.Rate.17_18.BIN, x = Size)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("School Size per Completion Rate Category") + 
+  theme(axis.text.y = element_blank()) +
+  ylab("Completion Rate")
+
+### Visualize: Average Cost per Academic Year
+# Create dataframe with no missing Average Cost data
+dataDF_14_15_cleanCost <- dataDF_14_15[!is.na(dataDF_14_15$Average.Cost.per.Academic.Year),]
+# Create graph
+dataDF_14_15_cleanCost %>%
+  ggplot( aes(x = Comp.Rate.17_18.BIN, y = Average.Cost.per.Academic.Year, fill = Comp.Rate.17_18.BIN)) +
+  geom_boxplot() +
+  ggtitle("Average Cost/Year per Completion Rate Category")
+
+### Visualize: Out of State Tuition & Fees
+dataDF_14_15 %>%
+  ggplot( aes(x = Comp.Rate.17_18.BIN, y = Out.of.State.Tuition.and.Fees, fill = Comp.Rate.17_18.BIN)) +
+  geom_boxplot() +
+  ggtitle("Out of State Costs per Completion Rate Category")
+
+### Visualize: Regions
+# Create dataframe with no missing regions
+dataDF_14_15_cleanRegion <- dataDF_14_15[!is.na(dataDF_14_15$Region),]
+# Version 1
+dataDF_14_15_cleanRegion %>%
+  ggplot( aes(fill = Region, y = Region, x = Comp.Rate.17_18.BIN)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Region per Completion Rate Category") + 
+  theme(axis.text.y = element_blank()) +
+  xlab("Completion Rate")
+# Version 2
+dataDF_14_15_cleanRegion %>%
+  ggplot( aes(fill = Comp.Rate.17_18.BIN, y = Comp.Rate.17_18.BIN, x = Region)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Region per Completion Rate Category") + 
+  theme(axis.text.y = element_blank()) +
+  ylab("Completion Rate")
+```
+
+## Hypothesis Testing
+
+### Chi-Square Test for Independence
+
+##### Region vs Completion Rate
+
+$H_0:$ Region and completion rates are independent. Completion Rates do not vary by region.
+$H_a:$ Region and completion rates are dependent. Completion Rates do vary by region.
+
+```{r}
+# Create two-way table for region vs completion rate
+(A <- table(dataDF_14_15_cleanRegion$Size, dataDF_14_15_cleanRegion$Comp.Rate.17_18.BIN))
+
+# Run a Chi-Square test
+chisq.test(A)
+```
+
+Since the p-value is very small (< 0.05), at the 5% significance level there is enough evidence to reject the null hypothesis. Thus, region and completion rate are dependent, i.e. there is a significant relationship between completion rate and region.
+
+##### School Size vs Completion Rate
+
+$H_0:$ School size and completion rates are independent. Completion Rates do not vary by school size.
+$H_a:$ School size and completion rates are dependent. Completion Rates do vary by school size.
+
+```{r}
+# Create two-way table for school size vs completion rate
+(B <- table(dataDF_14_15_cleanSize$Size, dataDF_14_15_cleanSize$Comp.Rate.17_18.BIN))
+
+# Run a Chi-Square test
+chisq.test(B)
+```
+
+Since the p-value is very small (< 0.05), at the 5% significance level there is enough evidence to reject the null hypothesis. Thus, school size and completion rate are dependent, i.e. there is a significant relationship between completion rate and school size.
+
+### T-Tests
+
+##### SAT Average and Completion Rate
+
+```{r}
+# Subset data into the three completion rate categories
+(lowDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Low", select=c(SAT.Average)))
+(medDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Medium", select=c(SAT.Average)))
+(highDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "High", select=c(SAT.Average)))
+```
+
+*Comparing Low & Medium Completion Rates*
+$H_0:$ The mean SAT Averages of Low-Completion Rate universities and Medium-Completion Rate universities are the same, $\mu_{low}=\mu_{medium} \implies \mu_{low}-\mu_{medium} =0$
+$H_a:$ The mean SAT Averages of Low-Completion Rate universities and Medium-Completion Rate universities are not the same, $\mu_{low}\neq \mu_{medium}$
+
+```{r}
+t.test(lowDF_SAT$SAT.Average, medDF_SAT$SAT.Average)
+```
+
+Since the p-value is very small (<0.05), at the 5% significance level there is enough evidence to reject the null hypothesis, indicating there is a significant difference in the mean SAT scores between low completion rate and medium completion rate.
+
+
+*Comparing Medium & High Completion Rates*
+$H_0:$ The mean SAT Averages of Medium-Completion Rate universities and High-Completion Rate universities are the same, $\mu_{medium}=\mu_{high} \implies \mu_{medium}-\mu_{high} =0$
+$H_a:$ The mean SAT Averages of Medium-Completion Rate universities and High-Completion Rate universities are not the same, $\mu_{medium}\neq \mu_{high}$
+
+```{r}
+t.test(medDF_SAT$SAT.Average, highDF_SAT$SAT.Average)
+```
+
+Since the p-value is very small (<0.05), at the 5% significance level there is enough evidence to reject the null hypothesis, indicating there is a significant difference in the mean SAT scores between medium completion rate and high completion rate.
+
+##### Average Cost per Academic Year and Completion Rate
+
+```{r}
+# Subset data into the three completion rate categories
+(lowDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Low", select=c(Average.Cost.per.Academic.Year)))
+(medDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Medium", select=c(Average.Cost.per.Academic.Year)))
+(highDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "High", select=c(Average.Cost.per.Academic.Year)))
+```
+
+*Comparing Low & Medium Completion Rates*
+$H_0:$ The mean Cost of Low-Completion Rate universities and Medium-Completion Rate universities are the same, $\mu_{low}=\mu_{medium} \implies \mu_{low}-\mu_{medium} =0$
+$H_a:$ The mean Cost of Low-Completion Rate universities and Medium-Completion Rate universities are not the same, $\mu_{low}\neq \mu_{medium}$
+
+```{r}
+t.test(lowDF_Cost$Average.Cost.per.Academic.Year, medDF_SAT$Average.Cost.per.Academic.Year)
+```
+
+Since the p-value is very small (<0.05), at the 5% significance level there is enough evidence to reject the null hypothesis, indicating there is a significant difference in the mean average costs between low completion rate and medium completion rate.
+
+
+*Comparing Medium & High Completion Rates*
+$H_0:$ The mean Cost of Medium-Completion Rate universities and High-Completion Rate universities are the same, $\mu_{medium}=\mu_{high} \implies \mu_{medium}-\mu_{high} =0$
+$H_a:$ The mean Cost of Medium-Completion Rate universities and High-Completion Rate universities are not the same, $\mu_{medium}\neq \mu_{high}$
+
+```{r}
+t.test(medDF_Cost$Average.Cost.per.Academic.Year, highDF_Cost$Average.Cost.per.Academic.Year)
+```
+
+Since the p-value is very small (<0.05), at the 5% significance level there is enough evidence to reject the null hypothesis, indicating there is a significant difference in the mean average costs between medium completion rate and high completion rate.
+
+
+More:
+- Bayesian probabilities? Ex: Prob of completing college given ____.
+- permutation test ??
+- something about confidence intervals
