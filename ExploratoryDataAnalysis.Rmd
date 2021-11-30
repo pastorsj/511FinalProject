@@ -11,7 +11,8 @@ if (!require("pacman")) {
   install.packages("pacman")
 }
 
-pacman::p_load(tidyverse, ggplot2, ggthemes, gganimate, gifski, png, htmlwidgets)
+pacman::p_load(tidyverse, ggplot2, ggthemes, gganimate, gifski, png, htmlwidgets, orca, plotly)
+Sys.setenv("PATH" = paste(Sys.getenv("PATH"), "/usr/local/anaconda3/bin", sep = .Platform$path.sep))
 ```
 
 ## Prepare the data
@@ -395,31 +396,86 @@ plot.ecdf(cost, col = 'darkgreen', main = 'ECDF of Average Cost')
 ## Conditional Statistics
 ```{r}
 # Calculate some basic conditional probabilities
-(df.clean <- read.csv('data/school_statistics.csv'))
+(df.clean <- read.csv('data/school_statistics.csv')) %>% 
+  transform(Size = as.factor(Size),
+            Region = as.factor(Region),
+            Comp.Rate.17_18.BIN = as.factor(Comp.Rate.17_18.BIN))
 # Total number of schools
 nrow(df.clean)
+print('Statistics on graduation rate')
 # Number of schools with low graduation rate
-(low.grad <- nrow(df.clean[(df.clean$Comp.Rate.17_18.BIN == 'Low'),]))
+(grad.total <- nrow(df.clean[(df.clean$Comp.Rate.17_18.BIN == 'Low'),]))
 # Number of schools with high graduation rate
-(high.grad <- nrow(df.clean[(df.clean$Comp.Rate.17_18.BIN == 'High'),]))
+(grad.total <- nrow(df.clean[(df.clean$Comp.Rate.17_18.BIN == 'High'),]))
 
-# Probability of Low Completion Rate given Region is South
-nrow(df.clean[(df.clean$Region == 'South') & (df.clean$Comp.Rate.17_18.BIN == 'Low'),]) / low.grad
-# Probability of Low Completion Rate given Region is West
-nrow(df.clean[(df.clean$Region == 'West') & (df.clean$Comp.Rate.17_18.BIN == 'Low'),]) / low.grad
-# Probability of Low Completion Rate given Region is Northeast
-nrow(df.clean[(df.clean$Region == 'Northeast') & (df.clean$Comp.Rate.17_18.BIN == 'Low'),]) / low.grad
-# Probability of Low Completion Rate given Region is North Central
-nrow(df.clean[(df.clean$Region == 'North Central') & (df.clean$Comp.Rate.17_18.BIN == 'Low'),]) / low.grad
+print('Statistics on location')
+# Number of schools in northeast
+(location.total <- nrow(df.clean[(df.clean$Region == 'Northeast'),]))
+# Number of schools in south
+(location.total <- nrow(df.clean[(df.clean$Region == 'South'),]))
+# Number of schools in north central
+(location.total <- nrow(df.clean[(df.clean$Region == 'North Central'),]))
+# Number of schools in west
+(location.total <- nrow(df.clean[(df.clean$Region == 'West'),]))
 
-# Probability of High Completion Rate given Region is South
-nrow(df.clean[(df.clean$Region == 'South') & (df.clean$Comp.Rate.17_18.BIN == 'High'),]) / high.grad
-# Probability of High Completion Rate given Region is West
-nrow(df.clean[(df.clean$Region == 'West') & (df.clean$Comp.Rate.17_18.BIN == 'High'),]) / high.grad
-# Probability of High Completion Rate given Region is Northeast
-nrow(df.clean[(df.clean$Region == 'Northeast') & (df.clean$Comp.Rate.17_18.BIN == 'High'),]) / high.grad
-# Probability of High Completion Rate given Region is North Central
-nrow(df.clean[(df.clean$Region == 'North Central') & (df.clean$Comp.Rate.17_18.BIN == 'High'),]) / high.grad
+df.probs <- data.frame(matrix(0, nrow = 4,  ncol = 2))
+colnames(df.probs) <- c('Low', 'High')
+rownames(df.probs) <- as.character(levels(state.region))
+
+for (r in rownames(df.probs)) {
+  region <- nrow(df.clean[(df.clean$Region == r),])
+  for (c in colnames(df.probs)) {
+    prob <- round(nrow(df.clean[(df.clean$Region == r) & (df.clean$Comp.Rate.17_18.BIN == c),]) / region, 3)
+    df.probs[r, c] <- prob
+  }
+}
+df.probs
+write.csv(df.probs, 'data/location_completion_rate.csv', row.names = TRUE)
+
+print('Statistics on size')
+# Number of very small schools
+(size.total <- nrow(df.clean[(df.clean$Size == 'Very Small'),]))
+# Number of small schools
+(size.total <- nrow(df.clean[(df.clean$Size == 'Small'),]))
+# Number of medium schools
+(size.total <- nrow(df.clean[(df.clean$Size == 'Medium'),]))
+# Number of large schools
+(size.total <- nrow(df.clean[(df.clean$Size == 'Large'),]))
+# Number of very large schools
+(size.total <- nrow(df.clean[(df.clean$Size == 'Very Large'),]))
+
+df.probs.2 <- data.frame(matrix(0, nrow = 5,  ncol = 2))
+colnames(df.probs.2) <- c('Low', 'High')
+rownames(df.probs.2) <- c('Very Small', 'Small', 'Medium', 'Large', 'Very Large')
+
+# Investigate Size vs Completion Rate
+for (r in rownames(df.probs.2)) {
+  size <- nrow(df.clean[(df.clean$Size == r),])
+  for (c in colnames(df.probs.2)) {
+    prob <- round(nrow(df.clean[(df.clean$Size == r) & (df.clean$Comp.Rate.17_18.BIN == c),]) / size, 3)
+    df.probs.2[r, c] <- prob
+  }
+}
+df.probs.2
+write.csv(df.probs.2, 'data/size_completion_rate.csv', row.names = TRUE)
+
+# Investigate Size and Region vs Completion Rate
+regions <- c('Northeast', 'South', 'North Central', 'West')
+for (region in regions) {
+  df.probs.region <- data.frame(matrix(0, nrow = 5,  ncol = 2))
+  rownames(df.probs.region) <- c('Very Small', 'Small', 'Medium', 'Large', 'Very Large')
+  colnames(df.probs.region) <- c('Low', 'High')
+  for (r in rownames(df.probs.region)) {
+    size.and.region <- nrow(df.clean[(df.clean$Size == r) & (df.clean$Region == region),])
+    for (c in colnames(df.probs.region)) {
+      prob <- round(nrow(df.clean[(df.clean$Size == r) & (df.clean$Region == region) & (df.clean$Comp.Rate.17_18.BIN == c),]) / size.and.region, 3)
+      df.probs.region[r, c] <- prob
+    }
+  }
+  print(df.probs.region)
+  write.csv(df.probs.region, paste('data/', gsub(" ", "", tolower(region), fixed = TRUE), '_size_completion_rate.csv', sep = ''))
+}
+
 ```
 
 # Interactive
@@ -440,7 +496,7 @@ df.clean %>%
                   marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
                   type = 'scatter', 
                   mode = 'markers') %>%
-     plotly::layout(title = 'Admissions rate vs SAT Average (2014-2015)', 
+     plotly::layout(title = 'SAT Average vs Admissions rate (2014-2015)', 
                     xaxis = list(title = 'Average SAT Score'), 
                     yaxis = list(title = 'Admissions Rate'))
 ```
@@ -487,15 +543,6 @@ merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>
 
 merged.df
 
-line.fit.b = list(dash="solid", width = 3, color='blue')
-line.fit.r = list(dash="solid", width = 3, color='red')
-line.fit.g = list(dash="solid", width = 3, color='chartreuse')
-linear = lm(Completion.Rate..4.year.institutions~SAT.Average, data = merged.df)
-quadratic = lm(Completion.Rate..4.year.institutions~SAT.Average + I(SAT.Average ^ 2), data = merged.df)
-cubic = lm(Completion.Rate..4.year.institutions~SAT.Average + 
-             I(SAT.Average ^ 2) + 
-             I(SAT.Average ^ 3), data = merged.df)
-
 (p <- merged.df %>%
   plotly::plot_ly(x = ~SAT.Average) %>%
   plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
@@ -507,11 +554,9 @@ cubic = lm(Completion.Rate..4.year.institutions~SAT.Average +
                   text = ~University.Name) %>%
   plotly::layout(title = 'SAT Average vs Completion Rate', 
                     xaxis = list(title = 'SAT Average'), 
-                    yaxis = list(title = 'Completion Rate')) %>%
-  plotly::add_lines(x = ~SAT.Average, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
-  plotly::add_lines(x = ~SAT.Average, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
-  plotly::add_lines(x = ~SAT.Average, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+                    yaxis = list(title = 'Completion Rate')))
 saveWidget(p, "visualizations/sat_score_vs_completion.html", selfcontained = F, libdir = "lib")
+orca(p, file = "visualizations/sat_score_vs_completion.png")
 ```
 
 Here we have a visual of Average SAT scores vs Completion Rate. We can see the positive trend, indicating our hypothesis should be that higher SAT scores should give higher completion rates in schools. That also means that colleges that admit students with lower SAT scores might be completely unable to help those students complete college, which is a discouraging sign.
@@ -535,7 +580,6 @@ merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>
 
 merged.df
 
-line.fit.b = list(dash="solid", width = 3, color='blue')
 line.fit.r = list(dash="solid", width = 3, color='red')
 line.fit.g = list(dash="solid", width = 3, color='chartreuse')
 linear = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average, data = merged.df)
@@ -560,6 +604,7 @@ cubic = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average +
   plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
   plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
 saveWidget(p, "visualizations/act_score_vs_completion.html", selfcontained = F, libdir = "lib")
+orca(p, file = "visualizations/act_score_vs_completion.png")
 ```
 
 Here we have ACT Scores vs Completion Rate. Here we can see that compared to SAT scores, this doesn't really give us as much insight as a visual, so we might hypothesize that SAT scores would give us more insight when it comes to hypothesis testing.
@@ -573,15 +618,6 @@ df.clean <- df %>%
   drop_na(Completion.Rate..4.year.institutions, Average.Cost.per.Academic.Year) %>%
   transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
 
-line.fit.b = list(dash="solid", width = 3, color='blue')
-line.fit.r = list(dash="solid", width = 3, color='red')
-line.fit.g = list(dash="solid", width = 3, color='chartreuse')
-linear = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year, data = df.clean)
-quadratic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year + I(Average.Cost.per.Academic.Year ^ 2), data = df.clean)
-cubic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year + 
-             I(Average.Cost.per.Academic.Year ^ 2) + 
-             I(Average.Cost.per.Academic.Year ^ 3), data = df.clean)
-
 (p <- df.clean %>%
   plotly::plot_ly(x = ~Average.Cost.per.Academic.Year) %>%
   plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
@@ -593,11 +629,9 @@ cubic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year +
                   text = ~University.Name) %>%
   plotly::layout(title = 'Average Cost vs Completion Rate', 
                     xaxis = list(title = 'Average Cost'), 
-                    yaxis = list(title = 'Completion Rate')) %>%
-  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
-  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
-  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+                    yaxis = list(title = 'Completion Rate')))
 saveWidget(p, "visualizations/cost_vs_completion.html", selfcontained = F, libdir = "lib")
+orca(p, file = "visualizations/cost_vs_completion.png")
 ```
 
 Here we can see a visual of Average Cost vs Completion Rate, which is one of the questions we want to answer (Does cost impact completion rate). We also fitted a couple of linear regression lines to see which fit the best. Any of the three types could be argued as the best, so the simpliest (linear) is the one to use.
@@ -624,6 +658,7 @@ df.clean <- df %>%
                     xaxis = list(title = 'Enrollment'), 
                     yaxis = list(title = 'Completion Rate')))
 saveWidget(p, "visualizations/enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
+orca(p, file = "visualizations/enrollment_vs_completion.png")
 ```
 
 Here we can see a visual of enrollment vs completion rate. Importantly, we can visually inspect the points on the graph to get a better sense of the data and see if there are any trends (especially if we want to fit regression lines). However, when graphing this data, it is clear there is an outlier. The University of Phoenix-Arizona has over 150,000 students! We should probably remove this datapoint before continuing our analysis.
@@ -651,6 +686,7 @@ df.clean <- df %>%
                     xaxis = list(title = 'Enrollment'), 
                     yaxis = list(title = 'Completion Rate')))
 saveWidget(p, "visualizations/enrollment_cost_vs_completion.html", selfcontained = F, libdir = "lib")
+orca(p, file = "visualizations/enrollment_cost_vs_completion.png")
 ```
 
 ``` {r}
@@ -675,6 +711,7 @@ df.clean <- df %>%
                     xaxis = list(title = 'Average Cost'), 
                     yaxis = list(title = 'Completion Rate')))
 saveWidget(p, "visualizations/cost_enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
+orca(p, file = "visualizations/cost_enrollment_vs_completion.png")
 ```
 
 
