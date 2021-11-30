@@ -14,14 +14,16 @@ if (!require("pacman")) {
 pacman::p_load(tidyverse, ggplot2, ggthemes, gganimate, gifski, png, htmlwidgets)
 ```
 
-## Explore the data
+## Prepare the data
 
 ```{r}
 df <- read.csv('data/finalCleanedData.csv')
 single.out.colleges <- c('Georgetown University', 'Rose-Hulman Institute of Technology', 'Georgia Institute of Technology-Main Campus', 'University of Virginia-Main Campus', 'University of Phoenix-Arizona')
+admission.year <- '2014_15'
+graduation.year <- '2017_18'
 
 df <- df %>% 
-  select(-X, -Unnamed..0) %>%
+  select(-X, -Unnamed..0, -Predominantly.Black, -Percent.of.Students..White., -Percent.of.Students..Hispanic., -Percent.of.Students..Asian., -Percent.of.Students..Black., -Most.Awarded.Degree) %>%
   transform(Color = ifelse(University.Name %in% single.out.colleges, 'Single', 'Normal')) %>%
   transform(Color = as.factor(Color),
             Year = as.factor(Year),
@@ -34,7 +36,9 @@ df[df$Color == 'Single',]
 # Columns
 names(df)
 ```
+
 # Basic
+## Boxplots and Histograms
 ### Average SAT Scores over time
 ```{r}
 df.clean.sat <- df %>%
@@ -322,45 +326,110 @@ dev.copy(png, filename = 'visualizations/student_population_boxplot.png', width 
 dev.off()
 ```
 
-### Student Population (Discretized by population -- small, medium, and large)
 
+## Distributions
+### SAT Scores
 ```{r}
-df.clean.pop.binned <- df %>%
+df.clean.sat <- df %>%
+  drop_na(SAT.Average) %>%
+  filter(Year == '2014_15')
+
+# Create histogram of Average SAT Scores across all colleges
+score <- df.clean.sat$SAT.Average
+hist(score, col = 'orange', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2014 - 2015)')
+abline(v = mean(score), col = "red", lwd = 2)
+
+# Create QQNorm plot of SAT scores
+qqnorm(score, col = 'orange', main = 'QQ Norm plot of SAT Scores')
+qqline(score, col = 'black')
+
+# Run Shapiro Wilk Test for Normality
+shapiro.test(score)
+
+# Plot the ECDF
+plot.ecdf(score, col = 'darkgreen', main = 'ECDF of SAT Scores')
+```
+
+Using a variety of techniques, we can show the SAT scores are normally distributed, which is generally useful when it comes to making assumptions and analyzing the data. Shown above are a histogram of the scores, a qqnorm plot, the results of a shapiro wilk test, and an ECDF of the data. We can see the data is slightly skewed towards lower scores which makes perfect sense. using the qqnorm plot, we can again see these results. Using a Shapiro-Wilk test, we can reject the null hypothesis that the distribution is not normal, given some credence that the distribution is indeed normal. Finally, using an ECDF, we can see the data looks normal as well. 
+
+### Undergrad Enrollment Sizes
+```{r}
+df.clean.size <- df %>%
   drop_na(Undergraduate.Enrollment) %>%
-  transform(Undergraduate.Enrollment = 
-              ifelse(Undergraduate.Enrollment < 5000, 'small', ifelse(Undergraduate.Enrollment < 15000, 'medium', 'large')))
+  filter(Year == '2014_15') %>%
+  filter(Undergraduate.Enrollment < 100000)
 
-par(mfrow = c(2,3))
-# Side by side distribution over time
-pop <- df.clean.pop.binned[df.clean.pop.binned$Year == '2014_15',]$Undergraduate.Enrollment
-barplot(pop, col = 'orange', xlab = 'Undergrad Enrollment', main = 'Enrollment (2014 - 2015)')
+# Create histogram of Undergraduate Enrollment across all colleges
+size <- df.clean.size$Undergraduate.Enrollment
+hist(size, col = 'orange', xlab = paste('Undergraduate Enrollment (', round(mean(size), 0), ')', sep = ''), main = 'Undergraduate Enrollment (2014 - 2015)')
+abline(v = mean(size), col = "red", lwd = 2)
 
-pop <- df.clean.pop.binned[df.clean.pop.binned$Year == '2015_16',]$Undergraduate.Enrollment
-barplot(pop, col = 'cyan', xlab = 'Undergrad Enrollment', main = 'Enrollment (2015 - 2016)')
+# Plot the ECDF
+plot.ecdf(size, col = 'darkgreen', main = 'ECDF of SAT Scores')
 
-pop <- df.clean.pop.binned[df.clean.pop.binned$Year == '2016_17',]$Undergraduate.Enrollment
-barplot(pop, col = 'green', xlab = 'Undergrad Enrollment', main = 'Enrollment (2016 - 2017)')
+# MLE of Exponential Distribution
+unbiased.estimator.lambda <- ((length(size) - 2) / (length(size) - 1)) * (1 / mean(size))
+size.sim <- rexp(10000, rate = unbiased.estimator.lambda)
+hist(size.sim, col = 'lightblue', xlab = paste('Simulated Undergraduate Enrollment (', round(mean(size), 0), ')', sep = ''), main = 'Simulated Undergraduate Enrollment (2014 - 2015)')
+abline(v = mean(size.sim), col = "red", lwd = 2)
+```
 
-rate <- df.clean.pop.binned[df.clean.pop.binned$Year == '2017_18',]$Undergraduate.Enrollment
-barplot(rate, col = 'blue', xlab = 'Undergrad Enrollment', main = 'Enrollment (2017 - 2018)')
+Using a variety of techniques, we can show the undergraduate enrollment sizes are exponential distributed, which can be useful when doing further analysis of the data. Shown above is the histogram of the set of the data, an ECDF of the data, both of which indicate the presence of an exponential distribution. Following that train of thought, we used a MLE estimator to gauge the value of lambda (the rate), and from there, we plotted a simulated version of the data to check to see whether the data looked similar. Using that MLE estimator, we can visually see the data looks close in distribution.
 
-rate <- df.clean.pop.binned[df.clean.pop.binned$Year == '2018_19',]$Undergraduate.Enrollment
-barplot(rate, col = 'magenta', xlab = 'Undergrad Enrollment', main = 'Enrollment (2018 - 2019)')
 
-pop <- df.clean.pop.binned[df.clean.pop.binned$Year == '2019_20',]$Undergraduate.Enrollment
-barplot(pop, col = 'gold', xlab = 'Undergrad Enrollment', main = 'Enrollment (2019 - 2020)')
+### Distribution of Cost
+```{r}
+df.clean.cost <- df %>%
+  drop_na(Average.Cost.per.Academic.Year) %>%
+  filter(Year == '2014_15')
 
-dev.copy(png, filename = 'visualizations/binned_student_population_histogram.png', width = 1200, height = 800)
-dev.off()
+# Create histogram of Average Cost across all colleges
+cost <- df.clean.cost$Average.Cost.per.Academic.Year
+hist(cost, col = 'orange', xlab = paste('Average Cost (', round(mean(cost), 0), ')', sep = ''), main = 'Average Cost (2014 - 2015)')
+abline(v = mean(cost), col = "red", lwd = 2)
+
+# Plot the ECDF
+plot.ecdf(cost, col = 'darkgreen', main = 'ECDF of Average Cost')
+```
+
+## Conditional Statistics
+```{r}
+# Calculate some basic conditional probabilities
+(df.clean <- read.csv('data/school_statistics.csv'))
+# Total number of schools
+nrow(df.clean)
+# Number of schools with low graduation rate
+(low.grad <- nrow(df.clean[(df.clean$Comp.Rate.17_18.BIN == 'Low'),]))
+# Number of schools with high graduation rate
+(high.grad <- nrow(df.clean[(df.clean$Comp.Rate.17_18.BIN == 'High'),]))
+
+# Probability of Low Completion Rate given Region is South
+nrow(df.clean[(df.clean$Region == 'South') & (df.clean$Comp.Rate.17_18.BIN == 'Low'),]) / low.grad
+# Probability of Low Completion Rate given Region is West
+nrow(df.clean[(df.clean$Region == 'West') & (df.clean$Comp.Rate.17_18.BIN == 'Low'),]) / low.grad
+# Probability of Low Completion Rate given Region is Northeast
+nrow(df.clean[(df.clean$Region == 'Northeast') & (df.clean$Comp.Rate.17_18.BIN == 'Low'),]) / low.grad
+# Probability of Low Completion Rate given Region is North Central
+nrow(df.clean[(df.clean$Region == 'North Central') & (df.clean$Comp.Rate.17_18.BIN == 'Low'),]) / low.grad
+
+# Probability of High Completion Rate given Region is South
+nrow(df.clean[(df.clean$Region == 'South') & (df.clean$Comp.Rate.17_18.BIN == 'High'),]) / high.grad
+# Probability of High Completion Rate given Region is West
+nrow(df.clean[(df.clean$Region == 'West') & (df.clean$Comp.Rate.17_18.BIN == 'High'),]) / high.grad
+# Probability of High Completion Rate given Region is Northeast
+nrow(df.clean[(df.clean$Region == 'Northeast') & (df.clean$Comp.Rate.17_18.BIN == 'High'),]) / high.grad
+# Probability of High Completion Rate given Region is North Central
+nrow(df.clean[(df.clean$Region == 'North Central') & (df.clean$Comp.Rate.17_18.BIN == 'High'),]) / high.grad
 ```
 
 # Interactive
 ### SAT Score vs Admissions Rate
+
 ```{r}
 # Plot relationship between admissions rate and average SAT score for 2014-2015
 df.clean <- df %>% 
   select(Color, University.Name, Admission.Rate, SAT.Average, Year) %>%
-  filter(Year == '2014_15') %>%
+  filter(Year == admission.year) %>%
   drop_na(SAT.Average, Admission.Rate)
 
 df.clean %>%
@@ -376,25 +445,7 @@ df.clean %>%
                     yaxis = list(title = 'Admissions Rate'))
 ```
 
-```{r}
-# Plot relationship between admissions rate and average SAT score for 2019-2020
-df.clean <- df %>% 
-  select(Color, University.Name, Admission.Rate, SAT.Average, Year) %>%
-  filter(Year == '2019_20') %>%
-  drop_na(SAT.Average, Admission.Rate)
-
-df.clean %>%
-  plotly::plot_ly(x = ~SAT.Average, 
-                  y = ~Admission.Rate, 
-                  text = ~University.Name,
-                  hoverinfo = 'text',
-                  marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
-                  type = 'scatter', 
-                  mode = 'markers') %>%
-     plotly::layout(title = 'Admissions rate vs SAT Average (2019-2020)', 
-                    xaxis = list(title = 'Average SAT Score'), 
-                    yaxis = list(title = 'Admissions Rate'))
-```
+Here we have a simple plot of SAT Score vs Admissions Rate. Even though this is not going to be used further down the road, it is important to see that the higher the SAT score, the lower the admissions rate, and that makes intuitive sense.
 
 ### SAT Score vs Admissions Rate (Animated)
 ```{r}
@@ -415,16 +466,18 @@ head(df.clean)
   theme_fivethirtyeight()
 ```
 
+This is a fun animation created to show the Average SAT score fluctuating over time. It is basically not helpful at all, but was a good idea initially...
+
 ### SAT Score vs Completion Rate
 ``` {r}
 # Plot SAT average versus completion
 df.2014.admissions <- df %>%
   select(Year, SAT.Average, University.Name, Color) %>%
-  filter(Year == '2014_15')
+  filter(Year == admission.year)
 
 df.2018.grads <- df %>%
   select(Year, Completion.Rate..4.year.institutions, University.Name) %>%
-  filter(Year == '2017_18')
+  filter(Year == graduation.year)
 
 merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>%
   rename(Year.Admit = Year.x,
@@ -461,16 +514,18 @@ cubic = lm(Completion.Rate..4.year.institutions~SAT.Average +
 saveWidget(p, "visualizations/sat_score_vs_completion.html", selfcontained = F, libdir = "lib")
 ```
 
+Here we have a visual of Average SAT scores vs Completion Rate. We can see the positive trend, indicating our hypothesis should be that higher SAT scores should give higher completion rates in schools. That also means that colleges that admit students with lower SAT scores might be completely unable to help those students complete college, which is a discouraging sign.
+
 ### ACT Score vs Completion
 ``` {r}
 # Plot ACT average versus completion
 df.2014.admissions <- df %>%
   select(Year, ACT.Cumulative.Average, University.Name, Color) %>%
-  filter(Year == '2014_15')
+  filter(Year == admission.year)
 
 df.2018.grads <- df %>%
   select(Year, Completion.Rate..4.year.institutions, University.Name) %>%
-  filter(Year == '2017_18')
+  filter(Year == graduation.year)
 
 merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>%
   rename(Year.Admit = Year.x,
@@ -507,12 +562,14 @@ cubic = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average +
 saveWidget(p, "visualizations/act_score_vs_completion.html", selfcontained = F, libdir = "lib")
 ```
 
+Here we have ACT Scores vs Completion Rate. Here we can see that compared to SAT scores, this doesn't really give us as much insight as a visual, so we might hypothesize that SAT scores would give us more insight when it comes to hypothesis testing.
+
 ### Average Cost vs Completion
 ``` {r}
 # Plot average cost versus completion
 df.clean <- df %>% 
   select(Color, University.Name, Completion.Rate..4.year.institutions, Average.Cost.per.Academic.Year, Year) %>%
-  filter(Year == '2019_20') %>%
+  filter(Year == admission.year) %>%
   drop_na(Completion.Rate..4.year.institutions, Average.Cost.per.Academic.Year) %>%
   transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
 
@@ -543,23 +600,16 @@ cubic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year +
 saveWidget(p, "visualizations/cost_vs_completion.html", selfcontained = F, libdir = "lib")
 ```
 
+Here we can see a visual of Average Cost vs Completion Rate, which is one of the questions we want to answer (Does cost impact completion rate). We also fitted a couple of linear regression lines to see which fit the best. Any of the three types could be argued as the best, so the simpliest (linear) is the one to use.
+
 ### Undergraduate Enrollment vs Completion
 ``` {r}
 # Plot enrollment versus completion
 df.clean <- df %>% 
   select(Color, University.Name, Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Year) %>%
-  filter(Year == '2019_20') %>%
+  filter(Year == admission.year) %>%
   drop_na(Completion.Rate..4.year.institutions, Undergraduate.Enrollment) %>%
   transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
-
-line.fit.b = list(dash="solid", width = 3, color='blue')
-line.fit.r = list(dash="solid", width = 3, color='red')
-line.fit.g = list(dash="solid", width = 3, color='chartreuse')
-linear = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment, data = df.clean)
-quadratic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + I(Undergraduate.Enrollment ^ 2), data = df.clean)
-cubic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + 
-             I(Undergraduate.Enrollment ^ 2) + 
-             I(Undergraduate.Enrollment ^ 3), data = df.clean)
 
 (p <- df.clean %>%
   plotly::plot_ly(x = ~Undergraduate.Enrollment) %>%
@@ -572,12 +622,11 @@ cubic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment +
                   text = ~University.Name) %>%
   plotly::layout(title = 'Enrollment vs Completion Rate', 
                     xaxis = list(title = 'Enrollment'), 
-                    yaxis = list(title = 'Completion Rate')) %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+                    yaxis = list(title = 'Completion Rate')))
 saveWidget(p, "visualizations/enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
 ```
+
+Here we can see a visual of enrollment vs completion rate. Importantly, we can visually inspect the points on the graph to get a better sense of the data and see if there are any trends (especially if we want to fit regression lines). However, when graphing this data, it is clear there is an outlier. The University of Phoenix-Arizona has over 150,000 students! We should probably remove this datapoint before continuing our analysis.
 
 ### Average Cost/Enrollment vs Completion
 ``` {r}
@@ -629,34 +678,4 @@ saveWidget(p, "visualizations/cost_enrollment_vs_completion.html", selfcontained
 ```
 
 
-``` {r}
-# Plot average cost versus completion
-df.clean <- df %>% 
-  select(Color, University.Name, Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Year) %>%
-  filter(Year == '2014_15') %>%
-  drop_na(Completion.Rate..4.year.institutions, Undergraduate.Enrollment)
-  # %>% filter(University.Name != 'University of Phoenix-Arizona')
 
-line.fit.b = list(dash="solid", width = 3, color='blue')
-line.fit.r = list(dash="solid", width = 3, color='red')
-line.fit.g = list(dash="solid", width = 3, color='chartreuse')
-linear = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment, data = df.clean)
-quadratic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + I(Undergraduate.Enrollment ^ 2), data = df.clean)
-cubic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + 
-             I(Undergraduate.Enrollment ^ 2) + 
-             I(Undergraduate.Enrollment ^ 3), data = df.clean)
-
-(p <- df.clean %>%
-  plotly::plot_ly(x = ~Undergraduate.Enrollment) %>%
-  plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
-                  marker = list(color = factor(df.clean$Color, labels = c('black', 'red'))),
-                  hoverinfo = 'text',
-                  text = ~University.Name) %>%
-  plotly::layout(title = 'Enrollment vs Completion Rate', 
-                    xaxis = list(title = 'Enrollment'), 
-                    yaxis = list(title = 'Completion Rate')) %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
-saveWidget(p, "visualizations/enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
-```

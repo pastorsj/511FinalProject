@@ -1,0 +1,125 @@
+---
+title: "Data Cleaning"
+author: "Haley Roberts, Sam Pastoriza, Monroe Farris"
+date: "11/29/2021"
+output: html_document
+---
+
+## Read in Data
+
+```{r}
+library(tidyverse)
+# Read in data
+dataDF <- read.csv("data/finalCleanedData.csv", stringsAsFactors=TRUE)
+head(dataDF)
+
+# Remove numbering columns (1st & 2nd columns)
+dataDF = subset(dataDF, select = -c(X, Unnamed..0))
+
+# Remove Most Awarded Degree + Race Columns
+dataDF = subset(dataDF, select = -c(Most.Awarded.Degree, 
+                                    Percent.of.Students..White., 
+                                    Percent.of.Students..Black.,
+                                    Percent.of.Students..Hispanic.,
+                                    Percent.of.Students..Asian.,
+                                    Predominantly.Black))
+
+# View updated data
+head(dataDF)
+dataDF <- dataDF %>% 
+  drop_na() %>% 
+  filter(Year %in% c('2014_15', '2017_18')) %>%
+  filter(University.State != 'VI') # Remove the universities in the Virgin Islands
+```
+
+## Data Cleaning
+
+##### Part 1: Subset 2014-2015 School Year & Add Completion Rate from 2017-2018 School Year
+
+```{r}
+# Subset for 2014-2015 data
+dataDF_14_15 <- dataDF[dataDF$Year == "2014_15",]
+
+# Remove year column from dataDF_14_15
+dataDF_14_15 = subset(dataDF_14_15, select = -c(Year))
+
+# Find if there are any duplicate-named colleges
+dups <- data.frame(table(dataDF_14_15$University.Name))
+listOfDups <- dups[dups$Freq > 1,]
+dataDups <- dataDF_14_15[dataDF_14_15$University.Name %in% listOfDups$Var1,]
+(dataDups <- dataDups[order(dataDups$University.Name),])
+# It appears that the duplicate-named colleges can be uniquely identified by considering name, state, & city
+
+# Subset for 2017-2018 data
+dataDF_17_18 <- dataDF[dataDF$Year == "2017_18",]
+
+# Add 17-18 completion rate to 14-15 data frame
+# (using three-level join as found by uniqueness of duplicates)
+i = 1
+while (i <= nrow(dataDF_14_15)) {
+  UName_i <- dataDF_14_15$University.Name[i]
+  UCity_i <- dataDF_14_15$University.City[i]
+  UState_i <- dataDF_14_15$University.State[i]
+  j = 1
+  while (j <= nrow(dataDF_17_18)) {
+    UName_j <- dataDF_17_18$University.Name[j]
+    UCity_j <- dataDF_17_18$University.City[j]
+    UState_j <- dataDF_17_18$University.State[j]
+    if (UName_i == UName_j & UCity_i == UCity_j & UState_i == UState_j) {
+      dataDF_14_15$Completion.Rate.17_18[i] <- dataDF_17_18$Completion.Rate..4.year.institutions[j]
+      j = nrow(dataDF_17_18)
+    }
+    j = j + 1
+  }
+  i = i + 1
+}
+
+# View dataframe
+head(dataDF_14_15)
+```
+
+##### Part 2: Bin Data (Completion Rate, Regions, School Size)
+
+```{r}
+###########
+# Bin 2017-2018 Completion Rate
+###########
+# See distribution of completion rates
+summary(dataDF_14_15$Completion.Rate.17_18)
+# Create new column with discretized completion rates 
+dataDF_14_15$Comp.Rate.17_18.BIN = cut(dataDF_14_15$Completion.Rate.17_18, 
+                                       c(0,0.4,0.6,100),
+                                       labels=c('Low','Medium','High'))
+# View distribution of binned categories
+table(dataDF_14_15$Comp.Rate.17_18.BIN)
+# Remove any columns with NAs for 2017-2018 completion rate:
+dataDF_14_15 <- dataDF_14_15[!is.na(dataDF_14_15$Comp.Rate.17_18.BIN),]
+
+###########
+# Add column for regions of each school based on University.State
+###########
+# Add DC as a region
+stateAbbrPlusDC <- c(state.abb, 'DC')
+stateRegionPlusDC <- as.factor(c(as.character(state.region), 'South'))
+# Create new column for region
+dataDF_14_15$Region <- stateRegionPlusDC[match(dataDF_14_15$University.State, stateAbbrPlusDC)]
+# View distribution of regions
+table(dataDF_14_15$Region)
+
+###########
+# Bin Undergrad Enrollment
+###########
+# See distribution of undergraduate enrollment
+summary(dataDF_14_15$Undergraduate.Enrollment)
+# Create new column with discretized undergraduate enrollments 
+dataDF_14_15$Size = cut(dataDF_14_15$Undergraduate.Enrollment, 
+                                       c(0,400,1000,3000,9000,Inf),
+                                       labels=c('Very Small','Small','Medium','Large','Very Large'))
+# View distribution of binned categories
+table(dataDF_14_15$Size)
+
+### View updated dataframe
+head(dataDF_14_15)
+
+write.csv(dataDF_14_15, 'data/school_statistics.csv', row.names = FALSE)
+```
