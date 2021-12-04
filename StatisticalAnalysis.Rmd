@@ -102,11 +102,16 @@ summary(model_2)
 library(tidyverse)
 library(ggplot2)
 
+level_rate <- factor(dataDF_14_15$Comp.Rate.17_18.BIN, level = c('Low', 'Medium', 'High'))
+
 ### Visualize: Admission Rate
 dataDF_14_15 %>%
-  ggplot( aes(x = Comp.Rate.17_18.BIN, y = Admission.Rate, fill = Comp.Rate.17_18.BIN)) +
+  ggplot( aes(x = level_rate, y = Admission.Rate, fill = level_rate)) +
   geom_boxplot() +
-  ggtitle("Admission Rate vs Completion Rate Category")
+  ggtitle("Admission Rate vs Completion Rate") + 
+  xlab('Completion Rate') + 
+  ylab('Admissions Rate') + 
+  labs(fill = "Completion Rate")
 dev.copy(png, filename = 'visualizations/admissions_rate_per_completion_rate_category_boxplot.png', width = 800, height = 600)
 dev.off()
 
@@ -115,40 +120,51 @@ dev.off()
 dataDF_14_15_cleanSAT <- dataDF_14_15[!is.na(dataDF_14_15$SAT.Average),]
 # Create graph
 dataDF_14_15_cleanSAT %>%
-  ggplot( aes(x = Comp.Rate.17_18.BIN, y = SAT.Average, fill = Comp.Rate.17_18.BIN)) +
+  ggplot( aes(x = level_rate, y = SAT.Average, fill = level_rate)) +
   geom_boxplot() +
-  ggtitle("Average SAT Score vs Completion Rate Category")
+  ggtitle("Average SAT Score vs Completion Rate") + 
+  xlab('Completion Rate') + 
+  ylab('Average SAT Score') + 
+  labs(fill = "Completion Rate")
 dev.copy(png, filename = 'visualizations/sat_score_per_completion_rate_category_boxplot.png', width = 800, height = 600)
 dev.off()
 
 ### Visualize: Undergrad Enrollment
 # Create dataframe with no missing undergrad enrollment data
 dataDF_14_15_cleanSize <- dataDF_14_15[!is.na(dataDF_14_15$Size),]
+level_size <- factor(dataDF_14_15_cleanSize$Size, levels = c('Very Small', 'Small', 'Medium', 'Large', 'Very Large'))
 # Version 1 - quantitative data
 dataDF_14_15_cleanSize %>%
-  ggplot( aes(x = Comp.Rate.17_18.BIN, y = Undergraduate.Enrollment, fill = Comp.Rate.17_18.BIN)) +
+  ggplot( aes(x = level_rate, y = Undergraduate.Enrollment, fill = level_rate)) +
   geom_boxplot() +
-  ggtitle("Undergrad Enrollment vs Completion Rate Category")
+  ggtitle("Undergrad Enrollment vs Completion Rate") + 
+  xlab('Completion Rate') + 
+  ylab('Undergraduate Enrollment') + 
+  labs(fill = "Completion Rate")
 dev.copy(png, filename = 'visualizations/size_per_completion_rate_category_boxplot.png', width = 800, height = 600)
 dev.off()
 
 # Version 2 - binned data
 dataDF_14_15_cleanSize %>%
-  ggplot( aes(fill = Size, y = Size, x = Comp.Rate.17_18.BIN)) + 
+  ggplot( aes(fill = level_size, y = level_size, x = level_rate)) + 
   geom_bar(position="stack", stat="identity") +
-  ggtitle("School Size vs Completion Rate Category") + 
+  ggtitle("School Size vs Completion Rate") + 
   theme(axis.text.y = element_blank()) +
-  xlab("Completion Rate")
+  xlab("Completion Rate") + 
+  ylab('School Size') + 
+  labs(fill = 'School Size')
 dev.copy(png, filename = 'visualizations/size_per_completion_rate_category_bar_1.png', width = 800, height = 600)
 dev.off()
 
 # Version 3 - binned data
 dataDF_14_15_cleanSize %>%
-  ggplot( aes(fill = Comp.Rate.17_18.BIN, y = Comp.Rate.17_18.BIN, x = Size)) + 
+  ggplot( aes(fill = level_rate, y = level_rate, x = level_size)) + 
   geom_bar(position="stack", stat="identity") +
-  ggtitle("School Size vs Completion Rate Category") + 
+  ggtitle("School Size vs Completion Rate") + 
   theme(axis.text.y = element_blank()) +
-  ylab("Completion Rate")
+  ylab("") +
+  xlab('School Size') + 
+  labs(fill = 'Completion Rate')
 dev.copy(png, filename = 'visualizations/size_per_completion_rate_category_bar_2.png', width = 800, height = 600)
 dev.off()
 
@@ -157,17 +173,23 @@ dev.off()
 dataDF_14_15_cleanCost <- dataDF_14_15[!is.na(dataDF_14_15$Average.Cost.per.Academic.Year),]
 # Create graph
 dataDF_14_15_cleanCost %>%
-  ggplot( aes(x = Comp.Rate.17_18.BIN, y = Average.Cost.per.Academic.Year, fill = Comp.Rate.17_18.BIN)) +
+  ggplot( aes(x = level_rate, y = Average.Cost.per.Academic.Year, fill = level_rate)) +
   geom_boxplot() +
-  ggtitle("Average Cost/Year vs Completion Rate Category")
+  ggtitle("Average Cost/Year vs Completion Rate") + 
+  xlab('Completion Rate') + 
+  ylab('Average Cost/Year') + 
+  labs(fill = "Completion Rate")
 dev.copy(png, filename = 'visualizations/cost_per_completion_rate_category_boxplot.png', width = 800, height = 600)
 dev.off()
 
 ### Visualize: Out of State Tuition & Fees
 dataDF_14_15 %>%
-  ggplot( aes(x = Comp.Rate.17_18.BIN, y = Out.of.State.Tuition.and.Fees, fill = Comp.Rate.17_18.BIN)) +
+  ggplot( aes(x = level_rate, y = Out.of.State.Tuition.and.Fees, fill = level_rate)) +
   geom_boxplot() +
-  ggtitle("Out of State Costs vs Completion Rate Category")
+  ggtitle("Out of State Costs vs Completion Rate") + 
+  xlab('Completion Rate') + 
+  ylab('Out of State Tuition & Fees') + 
+  labs(fill = "Completion Rate")
 dev.copy(png, filename = 'visualizations/out_of_state_cost_per_completion_rate_category_boxplot.png', width = 800, height = 600)
 dev.off()
 
@@ -176,7 +198,7 @@ dev.off()
 dataDF_14_15_cleanRegion <- dataDF_14_15[!is.na(dataDF_14_15$Region),]
 # Version 1
 dataDF_14_15_cleanRegion %>%
-  ggplot( aes(fill = Region, y = Region, x = Comp.Rate.17_18.BIN)) + 
+  ggplot( aes(fill = Region, y = Region, x = level_rate)) + 
   geom_bar(position="stack", stat="identity") +
   ggtitle("Region vs Completion Rate Category") + 
   theme(axis.text.y = element_blank()) +
@@ -186,11 +208,12 @@ dev.off()
 
 # Version 2
 dataDF_14_15_cleanRegion %>%
-  ggplot( aes(fill = Comp.Rate.17_18.BIN, y = Comp.Rate.17_18.BIN, x = Region)) + 
+  ggplot( aes(fill = level_rate, y = level_rate, x = Region)) + 
   geom_bar(position="stack", stat="identity") +
   ggtitle("Region vs Completion Rate Category") + 
   theme(axis.text.y = element_blank()) +
-  ylab("Completion Rate")
+  ylab("") + 
+  labs(fill = 'Completion Rate')
 dev.copy(png, filename = 'visualizations/region_per_completion_rate_category_bar_2.png', width = 800, height = 600)
 dev.off()
 ```

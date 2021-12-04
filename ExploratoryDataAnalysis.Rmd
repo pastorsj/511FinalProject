@@ -543,6 +543,15 @@ merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>
 
 merged.df
 
+line.fit.b = list(dash="solid", width = 3, color='blue')
+line.fit.r = list(dash="solid", width = 3, color='red')
+line.fit.g = list(dash="solid", width = 3, color='chartreuse')
+linear = lm(Completion.Rate..4.year.institutions~SAT.Average, data = merged.df)
+quadratic = lm(Completion.Rate..4.year.institutions~SAT.Average + I(SAT.Average ^ 2), data = merged.df)
+cubic = lm(Completion.Rate..4.year.institutions~SAT.Average + 
+             I(SAT.Average ^ 2) + 
+             I(SAT.Average ^ 3), data = merged.df)
+
 (p <- merged.df %>%
   plotly::plot_ly(x = ~SAT.Average) %>%
   plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
@@ -554,7 +563,11 @@ merged.df
                   text = ~University.Name) %>%
   plotly::layout(title = 'SAT Average vs Completion Rate', 
                     xaxis = list(title = 'SAT Average'), 
-                    yaxis = list(title = 'Completion Rate')))
+                    yaxis = list(title = 'Completion Rate')) %>%
+  plotly::add_lines(x = ~SAT.Average, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~SAT.Average, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~SAT.Average, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+
 saveWidget(p, "visualizations/sat_score_vs_completion.html", selfcontained = F, libdir = "lib")
 orca(p, file = "visualizations/sat_score_vs_completion.png")
 ```
@@ -580,6 +593,7 @@ merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>
 
 merged.df
 
+line.fit.b = list(dash="solid", width = 3, color='blue')
 line.fit.r = list(dash="solid", width = 3, color='red')
 line.fit.g = list(dash="solid", width = 3, color='chartreuse')
 linear = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average, data = merged.df)
@@ -618,6 +632,15 @@ df.clean <- df %>%
   drop_na(Completion.Rate..4.year.institutions, Average.Cost.per.Academic.Year) %>%
   transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
 
+line.fit.b = list(dash="solid", width = 3, color='blue')
+line.fit.r = list(dash="solid", width = 3, color='red')
+line.fit.g = list(dash="solid", width = 3, color='chartreuse')
+linear = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year, data = df.clean)
+quadratic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year + I(Average.Cost.per.Academic.Year ^ 2), data = df.clean)
+cubic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year + 
+             I(Average.Cost.per.Academic.Year ^ 2) + 
+             I(Average.Cost.per.Academic.Year ^ 3), data = df.clean)
+
 (p <- df.clean %>%
   plotly::plot_ly(x = ~Average.Cost.per.Academic.Year) %>%
   plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
@@ -629,7 +652,11 @@ df.clean <- df %>%
                   text = ~University.Name) %>%
   plotly::layout(title = 'Average Cost vs Completion Rate', 
                     xaxis = list(title = 'Average Cost'), 
-                    yaxis = list(title = 'Completion Rate')))
+                    yaxis = list(title = 'Completion Rate')) %>%
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+
 saveWidget(p, "visualizations/cost_vs_completion.html", selfcontained = F, libdir = "lib")
 orca(p, file = "visualizations/cost_vs_completion.png")
 ```
@@ -643,7 +670,17 @@ df.clean <- df %>%
   select(Color, University.Name, Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Year) %>%
   filter(Year == admission.year) %>%
   drop_na(Completion.Rate..4.year.institutions, Undergraduate.Enrollment) %>%
-  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
+  transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100) %>%
+  filter(Undergraduate.Enrollment < 100000)
+
+line.fit.b = list(dash="solid", width = 3, color='blue')
+line.fit.r = list(dash="solid", width = 3, color='red')
+line.fit.g = list(dash="solid", width = 3, color='chartreuse')
+linear = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment, data = df.clean)
+quadratic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + I(Undergraduate.Enrollment ^ 2), data = df.clean)
+cubic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment + 
+             I(Undergraduate.Enrollment ^ 2) + 
+             I(Undergraduate.Enrollment ^ 3), data = df.clean)
 
 (p <- df.clean %>%
   plotly::plot_ly(x = ~Undergraduate.Enrollment) %>%
@@ -656,7 +693,11 @@ df.clean <- df %>%
                   text = ~University.Name) %>%
   plotly::layout(title = 'Enrollment vs Completion Rate', 
                     xaxis = list(title = 'Enrollment'), 
-                    yaxis = list(title = 'Completion Rate')))
+                    yaxis = list(title = 'Completion Rate')) %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+
 saveWidget(p, "visualizations/enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
 orca(p, file = "visualizations/enrollment_vs_completion.png")
 ```

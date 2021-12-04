@@ -113,7 +113,7 @@ table(dataDF_14_15$Region)
 summary(dataDF_14_15$Undergraduate.Enrollment)
 # Create new column with discretized undergraduate enrollments 
 dataDF_14_15$Size = cut(dataDF_14_15$Undergraduate.Enrollment, 
-                                       c(0,400,1000,3000,9000,Inf),
+                                       c(0,1000,1800,3000,9000,Inf),
                                        labels=c('Very Small','Small','Medium','Large','Very Large'))
 # View distribution of binned categories
 table(dataDF_14_15$Size)
