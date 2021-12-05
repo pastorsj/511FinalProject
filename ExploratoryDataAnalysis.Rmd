@@ -11,6 +11,7 @@ output:
 \pagenumbering{gobble}
 
 ```{r setup, include=FALSE}
+# For the full source code, see https://github.com/pastorsj/511FinalProject
 knitr::opts_chunk$set(echo = TRUE)
 if (!require("pacman")) {
   install.packages("pacman")
@@ -24,14 +25,29 @@ Sys.setenv("PATH" = paste(Sys.getenv("PATH"), "/usr/local/anaconda3/bin", sep = 
 ## Prepare the data
 
 ```{r}
+# Read in the cleaned data
 df <- read.csv('data/finalCleanedData.csv')
-single.out.colleges <- c('Georgetown University', 'Rose-Hulman Institute of Technology', 'Georgia Institute of Technology-Main Campus', 'University of Virginia-Main Campus', 'University of Phoenix-Arizona')
+single.out.colleges <- c('Georgetown University', 
+                         'Rose-Hulman Institute of Technology', 
+                         'Georgia Institute of Technology-Main Campus', 
+                         'University of Virginia-Main Campus', 
+                         'University of Phoenix-Arizona')
 admission.year <- '2014_15'
 graduation.year <- '2017_18'
 
+# Filter out columns that were not statistically significant
 df <- df %>% 
-  select(-X, -Unnamed..0, -Predominantly.Black, -Percent.of.Students..White., -Percent.of.Students..Hispanic., -Percent.of.Students..Asian., -Percent.of.Students..Black., -Most.Awarded.Degree) %>%
-  transform(Color = ifelse(University.Name %in% single.out.colleges, 'Single', 'Normal')) %>%
+  select(-X, 
+         -Unnamed..0, 
+         -Predominantly.Black, 
+         -Percent.of.Students..White., 
+         -Percent.of.Students..Hispanic., 
+         -Percent.of.Students..Asian., 
+         -Percent.of.Students..Black., 
+         -Most.Awarded.Degree) %>%
+  transform(Color = ifelse(University.Name %in% single.out.colleges, 
+                           'Single', 
+                           'Normal')) %>%
   transform(Color = as.factor(Color),
             Year = as.factor(Year),
             University.State = as.factor(University.State))
@@ -51,27 +67,33 @@ df.clean.sat <- df %>%
 par(mfrow = c(2,3))
 # Side by side distribution over time
 score <- df.clean.sat[df.clean.sat$Year == '2014_15',]$SAT.Average
-hist(score, col = 'orange', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2014 - 2015)', xlim=c(600, 1600))
+hist(score, col = 'orange', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'SAT Score (2014 - 2015)', xlim=c(600, 1600))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.sat[df.clean.sat$Year == '2015_16',]$SAT.Average
-hist(score, col = 'cyan', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2015 - 2016)', xlim=c(600, 1600))
+hist(score, col = 'cyan', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'SAT Score (2015 - 2016)', xlim=c(600, 1600))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.sat[df.clean.sat$Year == '2016_17',]$SAT.Average
-hist(score, col = 'green', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2016 - 2017)', xlim=c(600, 1600))
+hist(score, col = 'green', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'SAT Score (2016 - 2017)', xlim=c(600, 1600))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.sat[df.clean.sat$Year == '2017_18',]$SAT.Average
-hist(score, col = 'blue', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2017 - 2018)', xlim=c(600, 1600))
+hist(score, col = 'blue', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'SAT Score (2017 - 2018)', xlim=c(600, 1600))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.sat[df.clean.sat$Year == '2018_19',]$SAT.Average
-hist(score, col = 'magenta', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2018 - 2019)', xlim=c(600, 1600))
+hist(score, col = 'magenta', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'SAT Score (2018 - 2019)', xlim=c(600, 1600))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.sat[df.clean.sat$Year == '2019_20',]$SAT.Average
-hist(score, col = 'gold', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2019 - 2020)', xlim=c(600, 1600))
+hist(score, col = 'gold', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'SAT Score (2019 - 2020)', xlim=c(600, 1600))
 abline(v = mean(score), col = "red", lwd = 2)
 dev.copy(png, filename = 'visualizations/sat_score_histogram.png', width = 1200, height = 800)
 dev.off()
@@ -82,12 +104,18 @@ Here we can see the SAT score slowly increase over time until 2017, where they r
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
-boxplot(df.clean.sat[df.clean.sat$Year == '2014_15',]$SAT.Average, col = 'orange', xlab = 'SAT Score', main = 'Average SAT (2014 - 2015)')
-boxplot(df.clean.sat[df.clean.sat$Year == '2015_16',]$SAT.Average, col = 'red', xlab = 'SAT Score', main = 'Average SAT (2015 - 2016)')
-boxplot(df.clean.sat[df.clean.sat$Year == '2016_17',]$SAT.Average, col = 'green', xlab = 'SAT Score', main = 'Average SAT (2016 - 2017)')
-boxplot(df.clean.sat[df.clean.sat$Year == '2017_18',]$SAT.Average, col = 'blue', xlab = 'SAT Score', main = 'Average SAT (2017 - 2018)')
-boxplot(df.clean.sat[df.clean.sat$Year == '2018_19',]$SAT.Average, col = 'magenta', xlab = 'SAT Score', main = 'Average SAT (2018 - 2019)')
-boxplot(df.clean.sat[df.clean.sat$Year == '2019_20',]$SAT.Average, col = 'gold', xlab = 'SAT Score', main = 'Average SAT (2019 - 2020)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2014_15',]$SAT.Average, col = 'orange', 
+        xlab = 'SAT Score', main = 'Average SAT (2014 - 2015)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2015_16',]$SAT.Average, col = 'red', 
+        xlab = 'SAT Score', main = 'Average SAT (2015 - 2016)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2016_17',]$SAT.Average, col = 'green', 
+        xlab = 'SAT Score', main = 'Average SAT (2016 - 2017)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2017_18',]$SAT.Average, col = 'blue', 
+        xlab = 'SAT Score', main = 'Average SAT (2017 - 2018)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2018_19',]$SAT.Average, col = 'magenta', 
+        xlab = 'SAT Score', main = 'Average SAT (2018 - 2019)')
+boxplot(df.clean.sat[df.clean.sat$Year == '2019_20',]$SAT.Average, col = 'gold', 
+        xlab = 'SAT Score', main = 'Average SAT (2019 - 2020)')
 dev.copy(png, filename = 'visualizations/sat_score_boxplot.png', width = 1200, height = 800)
 dev.off()
 ```
@@ -102,27 +130,33 @@ df.clean.act <- df %>%
 par(mfrow = c(2,3))
 # Side by side distribution over time
 score <- df.clean.act[df.clean.act$Year == '2014_15',]$ACT.Cumulative.Average
-hist(score, col = 'orange', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2014 - 2015)', xlim=c(10, 36))
+hist(score, col = 'orange', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'ACT Score (2014 - 2015)', xlim=c(10, 36))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.act[df.clean.act$Year == '2015_16',]$ACT.Cumulative.Average
-hist(score, col = 'cyan', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2015 - 2016)', xlim=c(10, 36))
+hist(score, col = 'cyan', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'ACT Score (2015 - 2016)', xlim=c(10, 36))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.act[df.clean.act$Year == '2016_17',]$ACT.Cumulative.Average
-hist(score, col = 'green', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2016 - 2017)', xlim=c(10, 36))
+hist(score, col = 'green', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'ACT Score (2016 - 2017)', xlim=c(10, 36))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.act[df.clean.act$Year == '2017_18',]$ACT.Cumulative.Average
-hist(score, col = 'blue', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2017 - 2018)', xlim=c(10, 36))
+hist(score, col = 'blue', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'ACT Score (2017 - 2018)', xlim=c(10, 36))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.act[df.clean.act$Year == '2018_19',]$ACT.Cumulative.Average
-hist(score, col = 'magenta', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2018 - 2019)', xlim=c(10, 36))
+hist(score, col = 'magenta', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'ACT Score (2018 - 2019)', xlim=c(10, 36))
 abline(v = mean(score), col = "red", lwd = 2)
 
 score <- df.clean.act[df.clean.act$Year == '2019_20',]$ACT.Cumulative.Average
-hist(score, col = 'gold', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), main = 'ACT Score (2019 - 2020)', xlim=c(10, 36))
+hist(score, col = 'gold', xlab = paste('ACT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'ACT Score (2019 - 2020)', xlim=c(10, 36))
 abline(v = mean(score), col = "red", lwd = 2)
 dev.copy(png, filename = 'visualizations/act_score_histogram.png', width = 1200, height = 800)
 dev.off()
@@ -133,12 +167,18 @@ Here the distribution of ACT scores over time seem to indicate the slight increa
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
-boxplot(df.clean.act[df.clean.act$Year == '2014_15',]$ACT.Cumulative.Average, col = 'orange', xlab = 'ACT Score', main = 'Average ACT (2014 - 2015)')
-boxplot(df.clean.act[df.clean.act$Year == '2015_16',]$ACT.Cumulative.Average, col = 'red', xlab = 'ACT Score', main = 'Average ACT (2015 - 2016)')
-boxplot(df.clean.act[df.clean.act$Year == '2016_17',]$ACT.Cumulative.Average, col = 'green', xlab = 'ACT Score', main = 'Average ACT (2016 - 2017)')
-boxplot(df.clean.act[df.clean.act$Year == '2017_18',]$ACT.Cumulative.Average, col = 'blue', xlab = 'ACT Score', main = 'Average ACT (2017 - 2018)')
-boxplot(df.clean.act[df.clean.act$Year == '2018_19',]$ACT.Cumulative.Average, col = 'magenta', xlab = 'ACT Score', main = 'Average ACT (2018 - 2019)')
-boxplot(df.clean.act[df.clean.act$Year == '2019_20',]$ACT.Cumulative.Average, col = 'gold', xlab = 'ACT Score', main = 'Average ACT (2019 - 2020)')
+boxplot(df.clean.act[df.clean.act$Year == '2014_15',]$ACT.Cumulative.Average, col = 'orange', 
+        xlab = 'ACT Score', main = 'Average ACT (2014 - 2015)')
+boxplot(df.clean.act[df.clean.act$Year == '2015_16',]$ACT.Cumulative.Average, col = 'red', 
+        xlab = 'ACT Score', main = 'Average ACT (2015 - 2016)')
+boxplot(df.clean.act[df.clean.act$Year == '2016_17',]$ACT.Cumulative.Average, col = 'green', 
+        xlab = 'ACT Score', main = 'Average ACT (2016 - 2017)')
+boxplot(df.clean.act[df.clean.act$Year == '2017_18',]$ACT.Cumulative.Average, col = 'blue', 
+        xlab = 'ACT Score', main = 'Average ACT (2017 - 2018)')
+boxplot(df.clean.act[df.clean.act$Year == '2018_19',]$ACT.Cumulative.Average, col = 'magenta', 
+        xlab = 'ACT Score', main = 'Average ACT (2018 - 2019)')
+boxplot(df.clean.act[df.clean.act$Year == '2019_20',]$ACT.Cumulative.Average, col = 'gold', 
+        xlab = 'ACT Score', main = 'Average ACT (2019 - 2020)')
 dev.copy(png, filename = 'visualizations/act_score_boxplot.png', width = 1200, height = 800)
 dev.off()
 ```
@@ -153,27 +193,33 @@ df.clean.cost <- df %>%
 par(mfrow = c(2,3))
 # Side by side distribution over time
 cost <- df.clean.cost[df.clean.cost$Year == '2014_15',]$Average.Cost.per.Academic.Year
-hist(cost, col = 'orange', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2014 - 2015)', xlim=c(5000, 80000))
+hist(cost, col = 'orange', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), 
+     main = 'Average Cost (2014 - 2015)', xlim=c(5000, 80000))
 abline(v = mean(cost), col = "red", lwd = 2)
 
 cost <- df.clean.cost[df.clean.cost$Year == '2015_16',]$Average.Cost.per.Academic.Year
-hist(cost, col = 'cyan', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2015 - 2016)', xlim=c(5000, 80000))
+hist(cost, col = 'cyan', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), 
+     main = 'Average Cost (2015 - 2016)', xlim=c(5000, 80000))
 abline(v = mean(cost), col = "red", lwd = 2)
 
 cost <- df.clean.cost[df.clean.cost$Year == '2016_17',]$Average.Cost.per.Academic.Year
-hist(cost, col = 'green', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2016 - 2017)', xlim=c(5000, 80000))
+hist(cost, col = 'green', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), 
+     main = 'Average Cost (2016 - 2017)', xlim=c(5000, 80000))
 abline(v = mean(cost), col = "red", lwd = 2)
 
 cost <- df.clean.cost[df.clean.cost$Year == '2017_18',]$Average.Cost.per.Academic.Year
-hist(cost, col = 'blue', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2017 - 2018)', xlim=c(5000, 80000))
+hist(cost, col = 'blue', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), 
+     main = 'Average Cost (2017 - 2018)', xlim=c(5000, 80000))
 abline(v = mean(cost), col = "red", lwd = 2)
 
 cost <- df.clean.cost[df.clean.cost$Year == '2018_19',]$Average.Cost.per.Academic.Year
-hist(cost, col = 'magenta', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2018 - 2019)', xlim=c(5000, 80000))
+hist(cost, col = 'magenta', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), 
+     main = 'Average Cost (2018 - 2019)', xlim=c(5000, 80000))
 abline(v = mean(cost), col = "red", lwd = 2)
 
 cost <- df.clean.cost[df.clean.cost$Year == '2019_20',]$Average.Cost.per.Academic.Year
-hist(cost, col = 'gold', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2019 - 2020)', xlim=c(5000, 80000))
+hist(cost, col = 'gold', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), 
+     main = 'Average Cost (2019 - 2020)', xlim=c(5000, 80000))
 abline(v = mean(cost), col = "red", lwd = 2)
 
 dev.copy(png, filename = 'visualizations/average_cost_histogram.png', width = 1200, height = 800)
@@ -183,12 +229,18 @@ Here the distribution of average cost over time is seen. From the visualizations
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
-boxplot(df.clean.cost[df.clean.cost$Year == '2014_15',]$Average.Cost.per.Academic.Year, col = 'orange', xlab = 'Average Cost', main = 'Average Cost (2014 - 2015)')
-boxplot(df.clean.cost[df.clean.cost$Year == '2015_16',]$Average.Cost.per.Academic.Year, col = 'red', xlab = 'Average Cost', main = 'Average Cost (2015 - 2016)')
-boxplot(df.clean.cost[df.clean.cost$Year == '2016_17',]$Average.Cost.per.Academic.Year, col = 'green', xlab = 'Average Cost', main = 'Average Cost (2016 - 2017)')
-boxplot(df.clean.cost[df.clean.cost$Year == '2017_18',]$Average.Cost.per.Academic.Year, col = 'blue', xlab = 'Average Cost', main = 'Average Cost (2017 - 2018)')
-boxplot(df.clean.cost[df.clean.cost$Year == '2018_19',]$Average.Cost.per.Academic.Year, col = 'magenta', xlab = 'Average Cost', main = 'Average Cost (2018 - 2019)')
-boxplot(df.clean.cost[df.clean.cost$Year == '2019_20',]$Average.Cost.per.Academic.Year, col = 'gold', xlab = 'Average Cost', main = 'Average Cost (2019 - 2020)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2014_15',]$Average.Cost.per.Academic.Year, 
+        col = 'orange', xlab = 'Average Cost', main = 'Average Cost (2014 - 2015)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2015_16',]$Average.Cost.per.Academic.Year, 
+        col = 'red', xlab = 'Average Cost', main = 'Average Cost (2015 - 2016)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2016_17',]$Average.Cost.per.Academic.Year, 
+        col = 'green', xlab = 'Average Cost', main = 'Average Cost (2016 - 2017)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2017_18',]$Average.Cost.per.Academic.Year, 
+        col = 'blue', xlab = 'Average Cost', main = 'Average Cost (2017 - 2018)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2018_19',]$Average.Cost.per.Academic.Year, 
+        col = 'magenta', xlab = 'Average Cost', main = 'Average Cost (2018 - 2019)')
+boxplot(df.clean.cost[df.clean.cost$Year == '2019_20',]$Average.Cost.per.Academic.Year, 
+        col = 'gold', xlab = 'Average Cost', main = 'Average Cost (2019 - 2020)')
 dev.copy(png, filename = 'visualizations/average_cost_boxplot.png', width = 1200, height = 800)
 dev.off()
 ```
@@ -203,27 +255,39 @@ df.clean.rate <- df %>%
 par(mfrow = c(2,3))
 # Side by side distribution over time
 rate <- df.clean.rate[df.clean.rate$Year == '2014_15',]$Admission.Rate
-hist(rate, col = 'orange', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2014 - 2015)')
+hist(rate, col = 'orange', 
+     xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Admission Rate (2014 - 2015)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2015_16',]$Admission.Rate
-hist(rate, col = 'cyan', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2015 - 2016)')
+hist(rate, col = 'cyan', 
+     xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Admission Rate (2015 - 2016)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2016_17',]$Admission.Rate
-hist(rate, col = 'green', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2016 - 2017)')
+hist(rate, col = 'green', 
+     xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Admission Rate (2016 - 2017)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2017_18',]$Admission.Rate
-hist(rate, col = 'blue', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2017 - 2018)')
+hist(rate, col = 'blue', 
+     xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Admission Rate (2017 - 2018)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2018_19',]$Admission.Rate
-hist(rate, col = 'magenta', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2018 - 2019)')
+hist(rate, col = 'magenta', 
+     xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Admission Rate (2018 - 2019)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2019_20',]$Admission.Rate
-hist(rate, col = 'gold', xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Admission Rate (2019 - 2020)')
+hist(rate, col = 'gold', 
+     xlab = paste('Admission Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Admission Rate (2019 - 2020)')
 abline(v = mean(rate), col = "red", lwd = 2)
 dev.copy(png, filename = 'visualizations/admissions_rate_histogram.png', width = 1200, height = 800)
 dev.off()
@@ -234,12 +298,18 @@ Here the distribution of admissions rate is seen over a period of 6 years. From 
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
-boxplot(df.clean.rate[df.clean.rate$Year == '2014_15',]$Admission.Rate, col = 'orange', xlab = 'Admission Rate', main = 'Admission Rate (2014 - 2015)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2015_16',]$Admission.Rate, col = 'red', xlab = 'Admission Rate', main = 'Admission Rate (2015 - 2016)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2016_17',]$Admission.Rate, col = 'green', xlab = 'Admission Rate', main = 'Admission Rate (2016 - 2017)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2017_18',]$Admission.Rate, col = 'blue', xlab = 'Admission Rate', main = 'Admission Rate (2017 - 2018)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2018_19',]$Admission.Rate, col = 'magenta', xlab = 'Admission Rate', main = 'Admission Rate (2018 - 2019)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2019_20',]$Admission.Rate, col = 'gold', xlab = 'Admission Rate', main = 'Admission Rate (2019 - 2020)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2014_15',]$Admission.Rate, col = 'orange', 
+        xlab = 'Admission Rate', main = 'Admission Rate (2014 - 2015)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2015_16',]$Admission.Rate, col = 'red', 
+        xlab = 'Admission Rate', main = 'Admission Rate (2015 - 2016)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2016_17',]$Admission.Rate, col = 'green', 
+        xlab = 'Admission Rate', main = 'Admission Rate (2016 - 2017)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2017_18',]$Admission.Rate, col = 'blue', 
+        xlab = 'Admission Rate', main = 'Admission Rate (2017 - 2018)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2018_19',]$Admission.Rate, col = 'magenta', 
+        xlab = 'Admission Rate', main = 'Admission Rate (2018 - 2019)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2019_20',]$Admission.Rate, col = 'gold', 
+        xlab = 'Admission Rate', main = 'Admission Rate (2019 - 2020)')
 dev.copy(png, filename = 'visualizations/admissions_rate_boxplot.png', width = 1200, height = 800)
 dev.off()
 ```
@@ -254,27 +324,39 @@ df.clean.rate <- df %>%
 par(mfrow = c(2,3))
 # Side by side distribution over time
 rate <- df.clean.rate[df.clean.rate$Year == '2014_15',]$Completion.Rate..4.year.institutions
-hist(rate, col = 'orange', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2014 - 2015)')
+hist(rate, col = 'orange', 
+     xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Completion Rate (2014 - 2015)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2015_16',]$Completion.Rate..4.year.institutions
-hist(rate, col = 'cyan', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2015 - 2016)')
+hist(rate, col = 'cyan', 
+     xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Completion Rate (2015 - 2016)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2016_17',]$Completion.Rate..4.year.institutions
-hist(rate, col = 'green', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2016 - 2017)')
+hist(rate, col = 'green', 
+     xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Completion Rate (2016 - 2017)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2017_18',]$Completion.Rate..4.year.institutions
-hist(rate, col = 'blue', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2017 - 2018)')
+hist(rate, col = 'blue', 
+     xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Completion Rate (2017 - 2018)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2018_19',]$Completion.Rate..4.year.institutions
-hist(rate, col = 'magenta', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2018 - 2019)')
+hist(rate, col = 'magenta', 
+     xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Completion Rate (2018 - 2019)')
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.rate[df.clean.rate$Year == '2019_20',]$Completion.Rate..4.year.institutions
-hist(rate, col = 'gold', xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), main = 'Completion Rate (2019 - 2020)')
+hist(rate, col = 'gold', 
+     xlab = paste('Completion Rate (', round(mean(rate), 2), '%)', sep = ''), 
+     main = 'Completion Rate (2019 - 2020)')
 abline(v = mean(rate), col = "red", lwd = 2)
 dev.copy(png, filename = 'visualizations/completion_rate_histogram.png', width = 1200, height = 800)
 dev.off()
@@ -283,12 +365,18 @@ dev.off()
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
-boxplot(df.clean.rate[df.clean.rate$Year == '2014_15',]$Completion.Rate..4.year.institutions, col = 'orange', xlab = 'Admission Rate', main = 'Admission Rate (2014 - 2015)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2015_16',]$Completion.Rate..4.year.institutions, col = 'red', xlab = 'Admission Rate', main = 'Admission Rate (2015 - 2016)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2016_17',]$Completion.Rate..4.year.institutions, col = 'green', xlab = 'Admission Rate', main = 'Admission Rate (2016 - 2017)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2017_18',]$Completion.Rate..4.year.institutions, col = 'blue', xlab = 'Admission Rate', main = 'Admission Rate (2017 - 2018)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2018_19',]$Completion.Rate..4.year.institutions, col = 'magenta', xlab = 'Admission Rate', main = 'Admission Rate (2018 - 2019)')
-boxplot(df.clean.rate[df.clean.rate$Year == '2019_20',]$Completion.Rate..4.year.institutions, col = 'gold', xlab = 'Admission Rate', main = 'Admission Rate (2019 - 2020)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2014_15',]$Completion.Rate..4.year.institutions, 
+        col = 'orange', xlab = 'Admission Rate', main = 'Admission Rate (2014 - 2015)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2015_16',]$Completion.Rate..4.year.institutions, 
+        col = 'red', xlab = 'Admission Rate', main = 'Admission Rate (2015 - 2016)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2016_17',]$Completion.Rate..4.year.institutions, 
+        col = 'green', xlab = 'Admission Rate', main = 'Admission Rate (2016 - 2017)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2017_18',]$Completion.Rate..4.year.institutions, 
+        col = 'blue', xlab = 'Admission Rate', main = 'Admission Rate (2017 - 2018)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2018_19',]$Completion.Rate..4.year.institutions, 
+        col = 'magenta', xlab = 'Admission Rate', main = 'Admission Rate (2018 - 2019)')
+boxplot(df.clean.rate[df.clean.rate$Year == '2019_20',]$Completion.Rate..4.year.institutions, 
+        col = 'gold', xlab = 'Admission Rate', main = 'Admission Rate (2019 - 2020)')
 dev.copy(png, filename = 'visualizations/completion_rate_boxplot.png', width = 1200, height = 800)
 dev.off()
 ```
@@ -302,27 +390,39 @@ df.clean.pop <- df %>%
 par(mfrow = c(2,3))
 # Side by side distribution over time
 pop <- df.clean.pop[df.clean.pop$Year == '2014_15',]$Undergraduate.Enrollment
-hist(pop, col = 'orange', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2014 - 2015)', xlim=c(0, 60000), breaks = 30)
+hist(pop, col = 'orange', 
+     xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), 
+     main = 'Enrollment (2014 - 2015)', xlim=c(0, 60000), breaks = 30)
 abline(v = mean(pop), col = "red", lwd = 2)
 
 pop <- df.clean.pop[df.clean.pop$Year == '2015_16',]$Undergraduate.Enrollment
-hist(pop, col = 'cyan', xlab = paste('Undergrad Enrollment (', round(mean(rate)), ')', sep = ''), main = 'Enrollment (2015 - 2016)', xlim=c(0, 60000), breaks = 30)
+hist(pop, col = 'cyan', 
+     xlab = paste('Undergrad Enrollment (', round(mean(rate)), ')', sep = ''), 
+     main = 'Enrollment (2015 - 2016)', xlim=c(0, 60000), breaks = 30)
 abline(v = mean(pop), col = "red", lwd = 2)
 
 pop <- df.clean.pop[df.clean.pop$Year == '2016_17',]$Undergraduate.Enrollment
-hist(pop, col = 'green', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2016 - 2017)', xlim=c(0, 60000), breaks = 30)
+hist(pop, col = 'green', 
+     xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), 
+     main = 'Enrollment (2016 - 2017)', xlim=c(0, 60000), breaks = 30)
 abline(v = mean(pop), col = "red", lwd = 2)
 
 rate <- df.clean.pop[df.clean.pop$Year == '2017_18',]$Undergraduate.Enrollment
-hist(rate, col = 'blue', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2017 - 2018)', xlim=c(0, 60000), breaks = 30)
+hist(rate, col = 'blue', 
+     xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), 
+     main = 'Enrollment (2017 - 2018)', xlim=c(0, 60000), breaks = 30)
 abline(v = mean(rate), col = "red", lwd = 2)
 
 rate <- df.clean.pop[df.clean.pop$Year == '2018_19',]$Undergraduate.Enrollment
-hist(rate, col = 'magenta', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2018 - 2019)', xlim=c(0, 60000), breaks = 30)
+hist(rate, col = 'magenta', 
+     xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), 
+     main = 'Enrollment (2018 - 2019)', xlim=c(0, 60000), breaks = 30)
 abline(v = mean(rate), col = "red", lwd = 2)
 
 pop <- df.clean.pop[df.clean.pop$Year == '2019_20',]$Undergraduate.Enrollment
-hist(pop, col = 'gold', xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), main = 'Enrollment (2019 - 2020)', xlim=c(0, 60000), breaks = 30)
+hist(pop, col = 'gold', 
+     xlab = paste('Undergrad Enrollment (', round(mean(pop)), ')', sep = ''), 
+     main = 'Enrollment (2019 - 2020)', xlim=c(0, 60000), breaks = 30)
 abline(v = mean(pop), col = "red", lwd = 2)
 dev.copy(png, filename = 'visualizations/student_population_histogram.png', width = 1200, height = 800)
 dev.off()
@@ -332,12 +432,18 @@ Here the distribution of enrollment seems to indicate an exponential distributio
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
-boxplot(df.clean.pop[df.clean.pop$Year == '2014_15',]$Undergraduate.Enrollment, col = 'orange', xlab = 'Enrollment', main = 'Enrollment (2014 - 2015)')
-boxplot(df.clean.pop[df.clean.pop$Year == '2015_16',]$Undergraduate.Enrollment, col = 'red', xlab = 'Enrollment', main = 'Enrollment (2015 - 2016)')
-boxplot(df.clean.pop[df.clean.pop$Year == '2016_17',]$Undergraduate.Enrollment, col = 'green', xlab = 'Enrollment', main = 'Enrollment (2016 - 2017)')
-boxplot(df.clean.pop[df.clean.pop$Year == '2017_18',]$Undergraduate.Enrollment, col = 'blue', xlab = 'Enrollment', main = 'Enrollment (2017 - 2018)')
-boxplot(df.clean.pop[df.clean.pop$Year == '2018_19',]$Undergraduate.Enrollment, col = 'magenta', xlab = 'Enrollment', main = 'Enrollment (2018 - 2019)')
-boxplot(df.clean.pop[df.clean.pop$Year == '2019_20',]$Undergraduate.Enrollment, col = 'gold', xlab = 'Enrollment', main = 'Enrollment (2019 - 2020)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2014_15',]$Undergraduate.Enrollment, 
+        col = 'orange', xlab = 'Enrollment', main = 'Enrollment (2014 - 2015)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2015_16',]$Undergraduate.Enrollment, 
+        col = 'red', xlab = 'Enrollment', main = 'Enrollment (2015 - 2016)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2016_17',]$Undergraduate.Enrollment, 
+        col = 'green', xlab = 'Enrollment', main = 'Enrollment (2016 - 2017)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2017_18',]$Undergraduate.Enrollment, 
+        col = 'blue', xlab = 'Enrollment', main = 'Enrollment (2017 - 2018)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2018_19',]$Undergraduate.Enrollment, 
+        col = 'magenta', xlab = 'Enrollment', main = 'Enrollment (2018 - 2019)')
+boxplot(df.clean.pop[df.clean.pop$Year == '2019_20',]$Undergraduate.Enrollment, 
+        col = 'gold', xlab = 'Enrollment', main = 'Enrollment (2019 - 2020)')
 dev.copy(png, filename = 'visualizations/student_population_boxplot.png', width = 1200, height = 800)
 dev.off()
 ```
@@ -346,24 +452,49 @@ By using a set of boxplots, a couple of outliers are seen and require further in
 ```{r}
 df.clean.pop$Size = cut(df.clean.pop$Undergraduate.Enrollment, 
                                        c(0,1000,1800,3000,9000,Inf),
-                                       labels=c('Very Small','Small','Medium','Large','Very Large'))
+                                       labels=c('Very Small','Small','Medium',
+                                                'Large','Very Large'))
 df.clean.pop <- df.clean.pop %>% drop_na(Size)
-level_size <- factor(df.clean.pop$Size, levels = c('Very Small', 'Small', 'Medium', 'Large', 'Very Large'))
+level_size <- factor(df.clean.pop$Size, levels = c('Very Small', 'Small', 'Medium', 
+                                                   'Large', 'Very Large'))
 
 table(df.clean.pop[df.clean.pop$Year == '2014_15',]$Size)
 table(df.clean.pop[df.clean.pop$Year == '2015_16',]$Size)
 table(df.clean.pop[df.clean.pop$Year == '2016_17',]$Size)
 
 # Side by side distribution over time
-p1 <- ggplot(df.clean.pop[df.clean.pop$Year == '2014_15',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2014-2015)") + ylab('Frequency') + guides(fill = "none")
+p1 <- ggplot(df.clean.pop[df.clean.pop$Year == '2014_15',], aes(x = Size, fill = Size)) + 
+  geom_bar(stat = 'count') + 
+  ggtitle("Enrollment (2014-2015)") + 
+  ylab('Frequency') + 
+  guides(fill = "none")
 p1
 dev.copy(png, filename = 'visualizations/enrollment_over_time_2014_bar_graph.png', width = 1200, height = 800)
 dev.off()
-p2 <- ggplot(df.clean.pop[df.clean.pop$Year == '2015_16',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2015-2016)") + ylab('Frequency') + guides(fill = "none")
-p3 <- ggplot(df.clean.pop[df.clean.pop$Year == '2016_17',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2016-2017)") + ylab('Frequency') + guides(fill = "none")
-p4 <- ggplot(df.clean.pop[df.clean.pop$Year == '2017_18',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2017-2018)") + ylab('Frequency') + guides(fill = "none")
-p5 <- ggplot(df.clean.pop[df.clean.pop$Year == '2018_19',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2018-2019)") + ylab('Frequency') + guides(fill = "none")
-p6 <- ggplot(df.clean.pop[df.clean.pop$Year == '2019_20',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2019-2020)") + ylab('Frequency') + guides(fill = "none")
+p2 <- ggplot(df.clean.pop[df.clean.pop$Year == '2015_16',], aes(x = Size, fill = Size)) + 
+  geom_bar(stat = 'count') + 
+  ggtitle("Enrollment (2015-2016)") + 
+  ylab('Frequency') + guides(fill = "none")
+p3 <- ggplot(df.clean.pop[df.clean.pop$Year == '2016_17',], aes(x = Size, fill = Size)) + 
+  geom_bar(stat = 'count') + 
+  ggtitle("Enrollment (2016-2017)") + 
+  ylab('Frequency') + 
+  guides(fill = "none")
+p4 <- ggplot(df.clean.pop[df.clean.pop$Year == '2017_18',], aes(x = Size, fill = Size)) + 
+  geom_bar(stat = 'count') + 
+  ggtitle("Enrollment (2017-2018)") + 
+  ylab('Frequency') + 
+  guides(fill = "none")
+p5 <- ggplot(df.clean.pop[df.clean.pop$Year == '2018_19',], aes(x = Size, fill = Size)) + 
+  geom_bar(stat = 'count') + 
+  ggtitle("Enrollment (2018-2019)") + 
+  ylab('Frequency') + 
+  guides(fill = "none")
+p6 <- ggplot(df.clean.pop[df.clean.pop$Year == '2019_20',], aes(x = Size, fill = Size)) + 
+  geom_bar(stat = 'count') + 
+  ggtitle("Enrollment (2019-2020)") + 
+  ylab('Frequency') + 
+  guides(fill = "none")
 grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 2)
 dev.copy(png, filename = 'visualizations/enrollment_over_time_bar_graph.png', width = 1200, height = 800)
 dev.off()
@@ -382,7 +513,11 @@ df.clean.region$Region <- stateRegionPlusDC[match(df.clean.region$University.Sta
 df.clean.region <- df.clean.region %>% drop_na(Region)
 
 # Side by side distribution over time
-p1 <- ggplot(df.clean.region[df.clean.region$Year == '2014_15',], aes(x = Region, fill = Region)) + geom_bar(stat = 'count') + ggtitle("Number of colleges per region (2014-2015)") + ylab('Frequency') + guides(fill = "none")
+p1 <- ggplot(df.clean.region[df.clean.region$Year == '2014_15',], aes(x = Region, fill = Region)) + 
+  geom_bar(stat = 'count') + 
+  ggtitle("Number of colleges per region (2014-2015)") + 
+  ylab('Frequency') + 
+  guides(fill = "none")
 p1
 dev.copy(png, filename = 'visualizations/region_over_time_2014_bar_graph.png', width = 1200, height = 800)
 dev.off()
@@ -399,7 +534,9 @@ df.clean.sat <- df %>%
 
 # Create histogram of Average SAT Scores across all colleges
 score <- df.clean.sat$SAT.Average
-hist(score, col = 'orange', xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), main = 'SAT Score (2014 - 2015)')
+hist(score, col = 'orange', 
+     xlab = paste('SAT Score (', round(mean(score), 0), ')', sep = ''), 
+     main = 'SAT Score (2014 - 2015)')
 abline(v = mean(score), col = "red", lwd = 2)
 
 # Create QQNorm plot of SAT scores
@@ -421,7 +558,9 @@ df.clean.size <- df %>%
 
 # Create histogram of Undergraduate Enrollment across all colleges
 size <- df.clean.size$Undergraduate.Enrollment
-hist(size, col = 'orange', xlab = paste('Undergraduate Enrollment (', round(mean(size), 0), ')', sep = ''), main = 'Undergraduate Enrollment (2014 - 2015)')
+hist(size, col = 'orange', 
+     xlab = paste('Undergraduate Enrollment (', round(mean(size), 0), ')', sep = ''), 
+     main = 'Undergraduate Enrollment (2014 - 2015)')
 abline(v = mean(size), col = "red", lwd = 2)
 
 # Plot the ECDF
@@ -430,7 +569,9 @@ plot.ecdf(size, col = 'darkgreen', main = 'ECDF of SAT Scores')
 # MLE of Exponential Distribution
 unbiased.estimator.lambda <- ((length(size) - 2) / (length(size) - 1)) * (1 / mean(size))
 size.sim <- rexp(10000, rate = unbiased.estimator.lambda)
-hist(size.sim, col = 'lightblue', xlab = paste('Simulated Undergraduate Enrollment (', round(mean(size), 0), ')', sep = ''), main = 'Simulated Undergraduate Enrollment (2014 - 2015)')
+hist(size.sim, col = 'lightblue', 
+     xlab = paste('Simulated Undergraduate Enrollment (', round(mean(size), 0), ')', sep = ''), 
+     main = 'Simulated Undergraduate Enrollment (2014 - 2015)')
 abline(v = mean(size.sim), col = "red", lwd = 2)
 ```
 
@@ -445,7 +586,9 @@ df.clean.cost <- df %>%
 
 # Create histogram of Average Cost across all colleges
 cost <- df.clean.cost$Average.Cost.per.Academic.Year
-hist(cost, col = 'orange', xlab = paste('Average Cost (', round(mean(cost), 0), ')', sep = ''), main = 'Average Cost (2014 - 2015)')
+hist(cost, col = 'orange', 
+     xlab = paste('Average Cost (', round(mean(cost), 0), ')', sep = ''), 
+     main = 'Average Cost (2014 - 2015)')
 abline(v = mean(cost), col = "red", lwd = 2)
 
 # Plot the ECDF
@@ -485,7 +628,9 @@ rownames(df.probs) <- as.character(levels(state.region))
 for (r in rownames(df.probs)) {
   region <- nrow(df.clean[(df.clean$Region == r),])
   for (c in colnames(df.probs)) {
-    prob <- round(nrow(df.clean[(df.clean$Region == r) & (df.clean$Comp.Rate.17_18.BIN == c),]) / region, 3)
+    prob <- round(nrow(df.clean[
+      (df.clean$Region == r) & (df.clean$Comp.Rate.17_18.BIN == c)
+      ,]) / region, 3)
     df.probs[r, c] <- prob
   }
 }
@@ -511,7 +656,9 @@ rownames(df.probs.2) <- c('Very Small', 'Small', 'Medium', 'Large', 'Very Large'
 for (r in rownames(df.probs.2)) {
   size <- nrow(df.clean[(df.clean$Size == r),])
   for (c in colnames(df.probs.2)) {
-    prob <- round(nrow(df.clean[(df.clean$Size == r) & (df.clean$Comp.Rate.17_18.BIN == c),]) / size, 3)
+    prob <- round(nrow(df.clean[
+      (df.clean$Size == r) & (df.clean$Comp.Rate.17_18.BIN == c),
+      ]) / size, 3)
     df.probs.2[r, c] <- prob
   }
 }
@@ -526,7 +673,9 @@ for (region in regions) {
   for (r in rownames(df.probs.region)) {
     size.and.region <- nrow(df.clean[(df.clean$Size == r) & (df.clean$Region == region),])
     for (c in colnames(df.probs.region)) {
-      prob <- round(nrow(df.clean[(df.clean$Size == r) & (df.clean$Region == region) & (df.clean$Comp.Rate.17_18.BIN == c),]) / size.and.region, 3)
+      prob <- round(nrow(df.clean[
+        (df.clean$Size == r) & (df.clean$Region == region) & (df.clean$Comp.Rate.17_18.BIN == c),
+        ]) / size.and.region, 3)
       df.probs.region[r, c] <- prob
     }
   }
@@ -601,9 +750,12 @@ cubic = lm(Completion.Rate..4.year.institutions~SAT.Average +
   plotly::layout(title = 'SAT Average vs Completion Rate', 
                     xaxis = list(title = 'SAT Average'), 
                     yaxis = list(title = 'Completion Rate')) %>%
-  plotly::add_lines(x = ~SAT.Average, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
-  plotly::add_lines(x = ~SAT.Average, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
-  plotly::add_lines(x = ~SAT.Average, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+  plotly::add_lines(x = ~SAT.Average, y = predict(linear), 
+                    line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~SAT.Average, y = predict(quadratic), 
+                    line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~SAT.Average, y = predict(cubic), 
+                    line = line.fit.g, name = 'Cubic', mode = 'lines'))
 
 saveWidget(p, "visualizations/sat_score_vs_completion.html", selfcontained = F, libdir = "lib")
 orca(p, file = "visualizations/sat_score_vs_completion.png")
@@ -651,9 +803,12 @@ cubic = lm(Completion.Rate..4.year.institutions~ACT.Cumulative.Average +
   plotly::layout(title = 'ACT Score vs Completion Rate', 
                     xaxis = list(title = 'ACT Score'), 
                     yaxis = list(title = 'Completion Rate')) %>%
-  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
-  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
-  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(linear), 
+                    line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(quadratic), 
+                    line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~ACT.Cumulative.Average, y = predict(cubic), 
+                    line = line.fit.g, name = 'Cubic', mode = 'lines'))
 saveWidget(p, "visualizations/act_score_vs_completion.html", selfcontained = F, libdir = "lib")
 orca(p, file = "visualizations/act_score_vs_completion.png")
 ```
@@ -690,9 +845,12 @@ cubic = lm(Completion.Rate..4.year.institutions~Average.Cost.per.Academic.Year +
   plotly::layout(title = 'Average Cost vs Completion Rate', 
                     xaxis = list(title = 'Average Cost'), 
                     yaxis = list(title = 'Completion Rate')) %>%
-  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
-  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
-  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(linear), 
+                    line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(quadratic), 
+                    line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~Average.Cost.per.Academic.Year, y = predict(cubic), 
+                    line = line.fit.g, name = 'Cubic', mode = 'lines'))
 
 saveWidget(p, "visualizations/cost_vs_completion.html", selfcontained = F, libdir = "lib")
 orca(p, file = "visualizations/cost_vs_completion.png")
@@ -731,9 +889,12 @@ cubic = lm(Completion.Rate..4.year.institutions~Undergraduate.Enrollment +
   plotly::layout(title = 'Enrollment vs Completion Rate', 
                     xaxis = list(title = 'Enrollment'), 
                     yaxis = list(title = 'Completion Rate')) %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(linear), line = line.fit.b, name = 'Linear', mode = 'lines') %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(quadratic), line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
-  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(cubic), line = line.fit.g, name = 'Cubic', mode = 'lines'))
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(linear), 
+                    line = line.fit.b, name = 'Linear', mode = 'lines') %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(quadratic), 
+                    line = line.fit.r, name = 'Quadratic', mode = 'lines') %>%
+  plotly::add_lines(x = ~Undergraduate.Enrollment, y = predict(cubic), 
+                    line = line.fit.g, name = 'Cubic', mode = 'lines'))
 
 saveWidget(p, "visualizations/enrollment_vs_completion.html", selfcontained = F, libdir = "lib")
 orca(p, file = "visualizations/enrollment_vs_completion.png")
@@ -753,7 +914,9 @@ df.clean <- df %>%
 (p <- df.clean %>%
   plotly::plot_ly(x = ~Undergraduate.Enrollment) %>%
   plotly::add_markers(y = ~Completion.Rate..4.year.institutions, 
-                  marker = list(color = ~Average.Cost.per.Academic.Year, colorscale = 'Rainbow', showscale = TRUE),
+                  marker = list(color = ~Average.Cost.per.Academic.Year, 
+                                colorscale = 'Rainbow', 
+                                showscale = TRUE),
                   hoverinfo = 'text',
                   hovertemplate = paste('<b>Name</b>: %{text}',
                                         '<br><b>Cost</b>: $%{marker.color}',
@@ -772,7 +935,8 @@ Here by plotting enrollment vs completion rate with a color scale associated wit
 ``` {r}
 # Plot average cost/enrollment versus completion
 df.clean <- df %>% 
-  select(Color, University.Name, Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Average.Cost.per.Academic.Year, Year) %>%
+  select(Color, University.Name, Completion.Rate..4.year.institutions, 
+         Undergraduate.Enrollment, Average.Cost.per.Academic.Year, Year) %>%
   filter(Year == '2019_20') %>%
   drop_na(Completion.Rate..4.year.institutions, Undergraduate.Enrollment, Average.Cost.per.Academic.Year) %>%
   transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)

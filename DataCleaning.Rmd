@@ -10,9 +10,20 @@ output:
 
 \pagenumbering{gobble}
 
+```{r setup, include=FALSE}
+# For the full source code, see https://github.com/pastorsj/511FinalProject
+knitr::opts_chunk$set(echo = TRUE)
+if (!require("pacman")) {
+  install.packages("pacman")
+}
+
+pacman::p_load(tidyverse)
+```
+
 ## Read in Data
 
 ```{r}
+# For the full source code, see https://github.com/pastorsj/511FinalProject
 library(tidyverse)
 # Read in data
 dataDF <- read.csv("data/finalCleanedData.csv", stringsAsFactors=TRUE)
@@ -53,7 +64,8 @@ dups <- data.frame(table(dataDF_14_15$University.Name))
 listOfDups <- dups[dups$Freq > 1,]
 dataDups <- dataDF_14_15[dataDF_14_15$University.Name %in% listOfDups$Var1,]
 (dataDups <- dataDups[order(dataDups$University.Name),])
-# It appears that the duplicate-named colleges can be uniquely identified by considering name, state, & city
+# It appears that the duplicate-named colleges can be uniquely identified by 
+# considering name, state, & city
 
 # Subset for 2017-2018 data
 dataDF_17_18 <- dataDF[dataDF$Year == "2017_18",]
@@ -119,7 +131,8 @@ summary(dataDF_14_15$Undergraduate.Enrollment)
 # Create new column with discretized undergraduate enrollments 
 dataDF_14_15$Size = cut(dataDF_14_15$Undergraduate.Enrollment, 
                                        c(0,1000,1800,3000,9000,Inf),
-                                       labels=c('Very Small','Small','Medium','Large','Very Large'))
+                                       labels=c('Very Small','Small','Medium',
+                                                'Large','Very Large'))
 # View distribution of binned categories
 table(dataDF_14_15$Size)
 

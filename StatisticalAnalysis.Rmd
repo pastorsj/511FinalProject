@@ -11,6 +11,7 @@ output:
 \pagenumbering{gobble}
 
 ```{r setup, include=FALSE}
+# For the full source code, see https://github.com/pastorsj/511FinalProject
 knitr::opts_chunk$set(echo = TRUE)
 if (!require("pacman")) {
   install.packages("pacman")
@@ -121,7 +122,9 @@ dataDF_14_15 %>%
   xlab('Completion Rate') + 
   ylab('Admissions Rate') + 
   labs(fill = "Completion Rate")
-dev.copy(png, filename = 'visualizations/admissions_rate_per_completion_rate_category_boxplot.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/admissions_rate_per_completion_rate_category_boxplot.png', 
+         width = 800, height = 600)
 dev.off()
 
 ### Visualize: SAT Average
@@ -135,7 +138,9 @@ dataDF_14_15_cleanSAT %>%
   xlab('Completion Rate') + 
   ylab('Average SAT Score') + 
   labs(fill = "Completion Rate")
-dev.copy(png, filename = 'visualizations/sat_score_per_completion_rate_category_boxplot.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/sat_score_per_completion_rate_category_boxplot.png', 
+         width = 800, height = 600)
 dev.off()
 
 ### Visualize: Undergrad Enrollment
@@ -150,7 +155,9 @@ dataDF_14_15_cleanSize %>%
   xlab('Completion Rate') + 
   ylab('Undergraduate Enrollment') + 
   labs(fill = "Completion Rate")
-dev.copy(png, filename = 'visualizations/size_per_completion_rate_category_boxplot.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/size_per_completion_rate_category_boxplot.png', 
+         width = 800, height = 600)
 dev.off()
 
 # Version 2 - binned data
@@ -162,7 +169,9 @@ dataDF_14_15_cleanSize %>%
   xlab("Completion Rate") + 
   ylab('School Size') + 
   labs(fill = 'School Size')
-dev.copy(png, filename = 'visualizations/size_per_completion_rate_category_bar_1.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/size_per_completion_rate_category_bar_1.png', 
+         width = 800, height = 600)
 dev.off()
 
 # Version 3 - binned data
@@ -174,7 +183,9 @@ dataDF_14_15_cleanSize %>%
   ylab("") +
   xlab('School Size') + 
   labs(fill = 'Completion Rate')
-dev.copy(png, filename = 'visualizations/size_per_completion_rate_category_bar_2.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/size_per_completion_rate_category_bar_2.png', 
+         width = 800, height = 600)
 dev.off()
 
 ### Visualize: Average Cost per Academic Year
@@ -188,7 +199,9 @@ dataDF_14_15_cleanCost %>%
   xlab('Completion Rate') + 
   ylab('Average Cost/Year') + 
   labs(fill = "Completion Rate")
-dev.copy(png, filename = 'visualizations/cost_per_completion_rate_category_boxplot.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/cost_per_completion_rate_category_boxplot.png', 
+         width = 800, height = 600)
 dev.off()
 
 ### Visualize: Out of State Tuition & Fees
@@ -199,7 +212,9 @@ dataDF_14_15 %>%
   xlab('Completion Rate') + 
   ylab('Out of State Tuition & Fees') + 
   labs(fill = "Completion Rate")
-dev.copy(png, filename = 'visualizations/out_of_state_cost_per_completion_rate_category_boxplot.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/out_of_state_cost_per_completion_rate_category_boxplot.png', 
+         width = 800, height = 600)
 dev.off()
 
 ### Visualize: Regions
@@ -212,7 +227,9 @@ dataDF_14_15_cleanRegion %>%
   ggtitle("Region vs Completion Rate") + 
   theme(axis.text.y = element_blank()) +
   xlab("Completion Rate")
-dev.copy(png, filename = 'visualizations/region_per_completion_rate_category_bar_1.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/region_per_completion_rate_category_bar_1.png', 
+         width = 800, height = 600)
 dev.off()
 
 # Version 2
@@ -223,7 +240,9 @@ dataDF_14_15_cleanRegion %>%
   theme(axis.text.y = element_blank()) +
   ylab("") + 
   labs(fill = 'Completion Rate')
-dev.copy(png, filename = 'visualizations/region_per_completion_rate_category_bar_2.png', width = 800, height = 600)
+dev.copy(png, 
+         filename = 'visualizations/region_per_completion_rate_category_bar_2.png', 
+         width = 800, height = 600)
 dev.off()
 ```
 
@@ -267,9 +286,12 @@ Since the p-value is very small (< 0.05), at the 5% significance level there is 
 
 ```{r}
 # Subset data into the three completion rate categories
-lowDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Low", select=c(SAT.Average))
-medDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Medium", select=c(SAT.Average))
-highDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "High", select=c(SAT.Average))
+lowDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Low", 
+                    select = c(SAT.Average))
+medDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Medium", 
+                    select = c(SAT.Average))
+highDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "High", 
+                     select = c(SAT.Average))
 ```
 
 *Comparing Low & Medium Completion Rates*
@@ -277,7 +299,8 @@ $H_0:$ The mean SAT Averages of Low-Completion Rate universities and Medium-Comp
 $H_a:$ The mean SAT Averages of Low-Completion Rate universities and Medium-Completion Rate universities are not the same, $\mu_{low}\neq \mu_{medium}$
 
 ```{r}
-t.test(lowDF_SAT$SAT.Average, medDF_SAT$SAT.Average)
+t.test(lowDF_SAT$SAT.Average, 
+       medDF_SAT$SAT.Average)
 ```
 
 Since the p-value is very small (<0.05), at the 5% significance level there is enough evidence to reject the null hypothesis, indicating there is a significant difference in the mean SAT scores between low completion rate and medium completion rate.
@@ -288,7 +311,8 @@ $H_0:$ The mean SAT Averages of Medium-Completion Rate universities and High-Com
 $H_a:$ The mean SAT Averages of Medium-Completion Rate universities and High-Completion Rate universities are not the same, $\mu_{medium}\neq \mu_{high}$
 
 ```{r}
-t.test(medDF_SAT$SAT.Average, highDF_SAT$SAT.Average)
+t.test(medDF_SAT$SAT.Average, 
+       highDF_SAT$SAT.Average)
 ```
 
 Since the p-value is very small (<0.05), at the 5% significance level there is enough evidence to reject the null hypothesis, indicating there is a significant difference in the mean SAT scores between medium completion rate and high completion rate.
@@ -297,9 +321,12 @@ Since the p-value is very small (<0.05), at the 5% significance level there is e
 
 ```{r}
 # Subset data into the three completion rate categories
-lowDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Low", select=c(Average.Cost.per.Academic.Year))
-medDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Medium", select=c(Average.Cost.per.Academic.Year))
-highDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "High", select=c(Average.Cost.per.Academic.Year))
+lowDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Low", 
+                     select = c(Average.Cost.per.Academic.Year))
+medDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Medium", 
+                     select = c(Average.Cost.per.Academic.Year))
+highDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "High", 
+                      select = c(Average.Cost.per.Academic.Year))
 ```
 
 *Comparing Low & Medium Completion Rates*
@@ -307,7 +334,8 @@ $H_0:$ The mean Cost of Low-Completion Rate universities and Medium-Completion R
 $H_a:$ The mean Cost of Low-Completion Rate universities and Medium-Completion Rate universities are not the same, $\mu_{low}\neq \mu_{medium}$
 
 ```{r}
-t.test(lowDF_Cost$Average.Cost.per.Academic.Year, medDF_SAT$Average.Cost.per.Academic.Year)
+t.test(lowDF_Cost$Average.Cost.per.Academic.Year, 
+       medDF_SAT$Average.Cost.per.Academic.Year)
 ```
 
 Since the p-value is very small (<0.05), at the 5% significance level there is enough evidence to reject the null hypothesis, indicating there is a significant difference in the mean average costs between low completion rate and medium completion rate.
@@ -318,7 +346,8 @@ $H_0:$ The mean Cost of Medium-Completion Rate universities and High-Completion 
 $H_a:$ The mean Cost of Medium-Completion Rate universities and High-Completion Rate universities are not the same, $\mu_{medium}\neq \mu_{high}$
 
 ```{r}
-t.test(medDF_Cost$Average.Cost.per.Academic.Year, highDF_Cost$Average.Cost.per.Academic.Year)
+t.test(medDF_Cost$Average.Cost.per.Academic.Year, 
+       highDF_Cost$Average.Cost.per.Academic.Year)
 ```
 
 Since the p-value is very small (<0.05), at the 5% significance level there is enough evidence to reject the null hypothesis, indicating there is a significant difference in the mean average costs between medium completion rate and high completion rate.
