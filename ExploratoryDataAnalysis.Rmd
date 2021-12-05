@@ -1,9 +1,14 @@
 ---
 title: "Exploratory Data Analysis"
-author: "Sam Pastoriza, Haley Roberts, Monroe Farris"
-date: "11/21/2021"
-output: html_document
+author: "Haley Roberts, Sam Pastoriza, Monroe Farris"
+date: "12/05/2021"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
 ---
+
+\pagenumbering{gobble}
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -11,7 +16,8 @@ if (!require("pacman")) {
   install.packages("pacman")
 }
 
-pacman::p_load(tidyverse, ggplot2, ggthemes, gganimate, gifski, png, htmlwidgets, orca, plotly)
+pacman::p_load(tidyverse, ggplot2, ggthemes, gganimate, gifski, 
+               png, htmlwidgets, orca, plotly, gridExtra)
 Sys.setenv("PATH" = paste(Sys.getenv("PATH"), "/usr/local/anaconda3/bin", sep = .Platform$path.sep))
 ```
 
@@ -31,9 +37,6 @@ df <- df %>%
             University.State = as.factor(University.State))
 # Preview of the data
 head(df)
-# Singled out columns
-df[df$Color == 'Single',]
-
 # Columns
 names(df)
 ```
@@ -74,6 +77,8 @@ dev.copy(png, filename = 'visualizations/sat_score_histogram.png', width = 1200,
 dev.off()
 ```
 
+Here we can see the SAT score slowly increase over time until 2017, where they rise dramatically. This is in part to the change of the SAT scale. Originally, the scale was scores ranging up to 2400, however, now the scale is only up to 1600.
+
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
@@ -87,6 +92,7 @@ dev.copy(png, filename = 'visualizations/sat_score_boxplot.png', width = 1200, h
 dev.off()
 ```
 
+Here the distribution of SAT scores is fairly regular with a couple of outliers, but for the most part, the distribution is mundane.
 
 ### Average ACT Scores over time
 ```{r}
@@ -122,6 +128,8 @@ dev.copy(png, filename = 'visualizations/act_score_histogram.png', width = 1200,
 dev.off()
 ```
 
+Here the distribution of ACT scores over time seem to indicate the slight increase in ACT score average over time. Since the scale is much smaller, it is not entirely clear how much scores change.
+
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
@@ -134,6 +142,8 @@ boxplot(df.clean.act[df.clean.act$Year == '2019_20',]$ACT.Cumulative.Average, co
 dev.copy(png, filename = 'visualizations/act_score_boxplot.png', width = 1200, height = 800)
 dev.off()
 ```
+
+Here the distribution of ACT scores can more easily be visualized. It is more clear that scores in 2016 tended to be higher with a smaller quartile range, while scores in 2018 tended to be lower.
 
 ### Average Cost over time
 ```{r}
@@ -165,10 +175,11 @@ abline(v = mean(cost), col = "red", lwd = 2)
 cost <- df.clean.cost[df.clean.cost$Year == '2019_20',]$Average.Cost.per.Academic.Year
 hist(cost, col = 'gold', xlab = paste('Average Cost ($', round(mean(cost), 2), ')', sep = ''), main = 'Average Cost (2019 - 2020)', xlim=c(5000, 80000))
 abline(v = mean(cost), col = "red", lwd = 2)
+
 dev.copy(png, filename = 'visualizations/average_cost_histogram.png', width = 1200, height = 800)
 dev.off()
 ```
-
+Here the distribution of average cost over time is seen. From the visualizations plus the analysis of the averages, the cost of school has clearly risen on a consistent basis by around $1000 per year.
 ```{r}
 par(mfrow = c(2,3))
 # Side by side distribution over time
@@ -182,6 +193,7 @@ dev.copy(png, filename = 'visualizations/average_cost_boxplot.png', width = 1200
 dev.off()
 ```
 
+Here again, the distribution of average cost over time seems to point towards a consistent rising cost over the past five years.
 
 ### Admissions Rate over time
 ```{r}
@@ -216,6 +228,8 @@ abline(v = mean(rate), col = "red", lwd = 2)
 dev.copy(png, filename = 'visualizations/admissions_rate_histogram.png', width = 1200, height = 800)
 dev.off()
 ```
+
+Here the distribution of admissions rate is seen over a period of 6 years. From the visualizations and the calculated averages, it is clear that admissions rates has not changed much over the period of observations.
 
 ```{r}
 par(mfrow = c(2,3))
@@ -313,6 +327,7 @@ abline(v = mean(pop), col = "red", lwd = 2)
 dev.copy(png, filename = 'visualizations/student_population_histogram.png', width = 1200, height = 800)
 dev.off()
 ```
+Here the distribution of enrollment seems to indicate an exponential distribution, but the overall average enrollment does not change over time.
 
 ```{r}
 par(mfrow = c(2,3))
@@ -326,7 +341,54 @@ boxplot(df.clean.pop[df.clean.pop$Year == '2019_20',]$Undergraduate.Enrollment, 
 dev.copy(png, filename = 'visualizations/student_population_boxplot.png', width = 1200, height = 800)
 dev.off()
 ```
+By using a set of boxplots, a couple of outliers are seen and require further investigration. Specifically, from 2014-2016, there is a school with more than 130,000 students.
 
+```{r}
+df.clean.pop$Size = cut(df.clean.pop$Undergraduate.Enrollment, 
+                                       c(0,1000,1800,3000,9000,Inf),
+                                       labels=c('Very Small','Small','Medium','Large','Very Large'))
+df.clean.pop <- df.clean.pop %>% drop_na(Size)
+level_size <- factor(df.clean.pop$Size, levels = c('Very Small', 'Small', 'Medium', 'Large', 'Very Large'))
+
+table(df.clean.pop[df.clean.pop$Year == '2014_15',]$Size)
+table(df.clean.pop[df.clean.pop$Year == '2015_16',]$Size)
+table(df.clean.pop[df.clean.pop$Year == '2016_17',]$Size)
+
+# Side by side distribution over time
+p1 <- ggplot(df.clean.pop[df.clean.pop$Year == '2014_15',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2014-2015)") + ylab('Frequency') + guides(fill = "none")
+p1
+dev.copy(png, filename = 'visualizations/enrollment_over_time_2014_bar_graph.png', width = 1200, height = 800)
+dev.off()
+p2 <- ggplot(df.clean.pop[df.clean.pop$Year == '2015_16',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2015-2016)") + ylab('Frequency') + guides(fill = "none")
+p3 <- ggplot(df.clean.pop[df.clean.pop$Year == '2016_17',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2016-2017)") + ylab('Frequency') + guides(fill = "none")
+p4 <- ggplot(df.clean.pop[df.clean.pop$Year == '2017_18',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2017-2018)") + ylab('Frequency') + guides(fill = "none")
+p5 <- ggplot(df.clean.pop[df.clean.pop$Year == '2018_19',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2018-2019)") + ylab('Frequency') + guides(fill = "none")
+p6 <- ggplot(df.clean.pop[df.clean.pop$Year == '2019_20',], aes(x = Size, fill = Size)) + geom_bar(stat = 'count') + ggtitle("Enrollment (2019-2020)") + ylab('Frequency') + guides(fill = "none")
+grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 2)
+dev.copy(png, filename = 'visualizations/enrollment_over_time_bar_graph.png', width = 1200, height = 800)
+dev.off()
+```
+
+Here size is broken down and discretized into five separate bins. We can see the relatively even distribution of universities across those bins.
+
+### Region Discretization
+```{r}
+stateAbbrPlusDC <- c(state.abb, 'DC')
+stateRegionPlusDC <- as.factor(c(as.character(state.region), 'South'))
+# Create new column for region
+df.clean.region = df
+df.clean.region$Region <- stateRegionPlusDC[match(df.clean.region$University.State, stateAbbrPlusDC)]
+
+df.clean.region <- df.clean.region %>% drop_na(Region)
+
+# Side by side distribution over time
+p1 <- ggplot(df.clean.region[df.clean.region$Year == '2014_15',], aes(x = Region, fill = Region)) + geom_bar(stat = 'count') + ggtitle("Number of colleges per region (2014-2015)") + ylab('Frequency') + guides(fill = "none")
+p1
+dev.copy(png, filename = 'visualizations/region_over_time_2014_bar_graph.png', width = 1200, height = 800)
+dev.off()
+```
+
+Here the number of colleges per region is seen using a simple bar chart. 
 
 ## Distributions
 ### SAT Scores
@@ -344,14 +406,11 @@ abline(v = mean(score), col = "red", lwd = 2)
 qqnorm(score, col = 'orange', main = 'QQ Norm plot of SAT Scores')
 qqline(score, col = 'black')
 
-# Run Shapiro Wilk Test for Normality
-shapiro.test(score)
-
 # Plot the ECDF
 plot.ecdf(score, col = 'darkgreen', main = 'ECDF of SAT Scores')
 ```
 
-Using a variety of techniques, we can show the SAT scores are normally distributed, which is generally useful when it comes to making assumptions and analyzing the data. Shown above are a histogram of the scores, a qqnorm plot, the results of a shapiro wilk test, and an ECDF of the data. We can see the data is slightly skewed towards lower scores which makes perfect sense. using the qqnorm plot, we can again see these results. Using a Shapiro-Wilk test, we can reject the null hypothesis that the distribution is not normal, given some credence that the distribution is indeed normal. Finally, using an ECDF, we can see the data looks normal as well. 
+Using a variety of techniques, we can show the SAT scores are normally distributed, which is generally useful when it comes to making assumptions and analyzing the data. Shown above are a histogram of the scores, a qqnorm plot, the results of a shapiro wilk test, and an ECDF of the data. We can see the data is slightly skewed towards lower scores which makes perfect sense. using the qqnorm plot, we can again see these results. Finally, using an ECDF, we can see the data looks normal as well. 
 
 ### Undergrad Enrollment Sizes
 ```{r}
@@ -392,11 +451,12 @@ abline(v = mean(cost), col = "red", lwd = 2)
 # Plot the ECDF
 plot.ecdf(cost, col = 'darkgreen', main = 'ECDF of Average Cost')
 ```
+From the ecdf and histograms of cost, it is less clear how cost is distributed. Perhaps a skewed normal distribution or something log normal like.
 
 ## Conditional Statistics
 ```{r}
 # Calculate some basic conditional probabilities
-(df.clean <- read.csv('data/school_statistics.csv')) %>% 
+df.clean <- read.csv('data/school_statistics.csv') %>% 
   transform(Size = as.factor(Size),
             Region = as.factor(Region),
             Comp.Rate.17_18.BIN = as.factor(Comp.Rate.17_18.BIN))
@@ -429,7 +489,6 @@ for (r in rownames(df.probs)) {
     df.probs[r, c] <- prob
   }
 }
-df.probs
 write.csv(df.probs, 'data/location_completion_rate.csv', row.names = TRUE)
 
 print('Statistics on size')
@@ -456,7 +515,6 @@ for (r in rownames(df.probs.2)) {
     df.probs.2[r, c] <- prob
   }
 }
-df.probs.2
 write.csv(df.probs.2, 'data/size_completion_rate.csv', row.names = TRUE)
 
 # Investigate Size and Region vs Completion Rate
@@ -477,6 +535,8 @@ for (region in regions) {
 }
 
 ```
+
+ This is a set of conditional probability tables built to better understand the effect of region and size on graduation rates.
 
 # Interactive
 ### SAT Score vs Admissions Rate
@@ -503,27 +563,6 @@ df.clean %>%
 
 Here we have a simple plot of SAT Score vs Admissions Rate. Even though this is not going to be used further down the road, it is important to see that the higher the SAT score, the lower the admissions rate, and that makes intuitive sense.
 
-### SAT Score vs Admissions Rate (Animated)
-```{r}
-# Plot admissions rate and average SAT score over time
-df.clean <- df %>% 
-  drop_na(Admission.Rate) %>% 
-  drop_na(SAT.Average) %>%
-  transform(Year = as.integer(substr(Year, 0, 4)))
-head(df.clean)
-  
-(p <- ggplot(
-  data = df.clean,
-  aes(x = SAT.Average, y = Admission.Rate)) +
-  geom_point(show.legend = FALSE, alpha = 0.7) +
-  labs(x = "Average SAT Score", y = "Admissions Rate") + 
-  transition_time(Year) + 
-  labs(title = 'Year: {as.integer(frame_time)}')) + 
-  theme_fivethirtyeight()
-```
-
-This is a fun animation created to show the Average SAT score fluctuating over time. It is basically not helpful at all, but was a good idea initially...
-
 ### SAT Score vs Completion Rate
 ``` {r}
 # Plot SAT average versus completion
@@ -540,8 +579,6 @@ merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>
          Year.Graduate = Year.y) %>%
   drop_na(SAT.Average, Completion.Rate..4.year.institutions) %>%
   transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
-
-merged.df
 
 line.fit.b = list(dash="solid", width = 3, color='blue')
 line.fit.r = list(dash="solid", width = 3, color='red')
@@ -591,7 +628,7 @@ merged.df <- merge(df.2014.admissions, df.2018.grads, by = 'University.Name') %>
   drop_na(ACT.Cumulative.Average, Completion.Rate..4.year.institutions) %>%
   transform(Completion.Rate..4.year.institutions = Completion.Rate..4.year.institutions * 100)
 
-merged.df
+head(merged.df)
 
 line.fit.b = list(dash="solid", width = 3, color='blue')
 line.fit.r = list(dash="solid", width = 3, color='red')
@@ -730,6 +767,8 @@ saveWidget(p, "visualizations/enrollment_cost_vs_completion.html", selfcontained
 orca(p, file = "visualizations/enrollment_cost_vs_completion.png")
 ```
 
+Here by plotting enrollment vs completion rate with a color scale associated with cost, some interesting results are seen. First, as completion rate increases, cost also tends to increase. However, by zooming into the highest graduation rate schools, some of the highest graduation rate schools actually do not cost much all things considered. Also, by viewing the graph as a whole, most schools with a high graduation rate tend to be less than 10,000 students.
+
 ``` {r}
 # Plot average cost/enrollment versus completion
 df.clean <- df %>% 
@@ -755,5 +794,5 @@ saveWidget(p, "visualizations/cost_enrollment_vs_completion.html", selfcontained
 orca(p, file = "visualizations/cost_enrollment_vs_completion.png")
 ```
 
-
+Here is a different visual, but uses the same variables as above. Here the graph seems to indicate that as cost grows, the number of students drops and the completion rate rises. However, considering the distribution, there seems to be a second trend of schools where the cost increases far more gradually and the completion rate rises faster. These schools tend to have more students, but still attain a high graduation rate.
 

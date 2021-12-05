@@ -1,9 +1,14 @@
 ---
 title: "Data Cleaning"
 author: "Haley Roberts, Sam Pastoriza, Monroe Farris"
-date: "11/29/2021"
-output: html_document
+date: "12/05/2021"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
 ---
+
+\pagenumbering{gobble}
 
 ## Read in Data
 

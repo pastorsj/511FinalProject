@@ -1,9 +1,23 @@
 ---
 title: "Statistical Analysis"
-author: "Haley Roberts, Sam Pastoriza, Monroe Farris""
-date: "11/21/2021"
-output: html_document
+author: "Haley Roberts, Sam Pastoriza, Monroe Farris"
+date: "12/05/2021"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
 ---
+
+\pagenumbering{gobble}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require("pacman")) {
+  install.packages("pacman")
+}
+
+pacman::p_load(caret, tidyverse)
+```
 
 ## Linear Regression
 
@@ -11,7 +25,6 @@ output: html_document
 
 ```{r}
 # Libraries
-library(caret)
 dataDF_14_15 = read.csv('data/school_statistics.csv')
 
 # Set seed
@@ -58,7 +71,7 @@ summary(model_1)
 
 ```{r}
 # Make predictions on testing data set using Model 1
-(preds_1 <- predict(model_1, testDF))
+preds_1 <- predict(model_1, testDF)
 
 # Consider model performance
 # Prediction error (RMSE)
@@ -98,10 +111,6 @@ summary(model_2)
 ## Visualize variables
 
 ```{r}
-### Libraries
-library(tidyverse)
-library(ggplot2)
-
 level_rate <- factor(dataDF_14_15$Comp.Rate.17_18.BIN, level = c('Low', 'Medium', 'High'))
 
 ### Visualize: Admission Rate
@@ -200,7 +209,7 @@ dataDF_14_15_cleanRegion <- dataDF_14_15[!is.na(dataDF_14_15$Region),]
 dataDF_14_15_cleanRegion %>%
   ggplot( aes(fill = Region, y = Region, x = level_rate)) + 
   geom_bar(position="stack", stat="identity") +
-  ggtitle("Region vs Completion Rate Category") + 
+  ggtitle("Region vs Completion Rate") + 
   theme(axis.text.y = element_blank()) +
   xlab("Completion Rate")
 dev.copy(png, filename = 'visualizations/region_per_completion_rate_category_bar_1.png', width = 800, height = 600)
@@ -210,7 +219,7 @@ dev.off()
 dataDF_14_15_cleanRegion %>%
   ggplot( aes(fill = level_rate, y = level_rate, x = Region)) + 
   geom_bar(position="stack", stat="identity") +
-  ggtitle("Region vs Completion Rate Category") + 
+  ggtitle("Region vs Completion Rate") + 
   theme(axis.text.y = element_blank()) +
   ylab("") + 
   labs(fill = 'Completion Rate')
@@ -258,9 +267,9 @@ Since the p-value is very small (< 0.05), at the 5% significance level there is 
 
 ```{r}
 # Subset data into the three completion rate categories
-(lowDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Low", select=c(SAT.Average)))
-(medDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Medium", select=c(SAT.Average)))
-(highDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "High", select=c(SAT.Average)))
+lowDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Low", select=c(SAT.Average))
+medDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "Medium", select=c(SAT.Average))
+highDF_SAT <- subset(dataDF_14_15_cleanSAT, Comp.Rate.17_18.BIN == "High", select=c(SAT.Average))
 ```
 
 *Comparing Low & Medium Completion Rates*
@@ -288,9 +297,9 @@ Since the p-value is very small (<0.05), at the 5% significance level there is e
 
 ```{r}
 # Subset data into the three completion rate categories
-(lowDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Low", select=c(Average.Cost.per.Academic.Year)))
-(medDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Medium", select=c(Average.Cost.per.Academic.Year)))
-(highDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "High", select=c(Average.Cost.per.Academic.Year)))
+lowDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Low", select=c(Average.Cost.per.Academic.Year))
+medDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "Medium", select=c(Average.Cost.per.Academic.Year))
+highDF_Cost <- subset(dataDF_14_15_cleanCost, Comp.Rate.17_18.BIN == "High", select=c(Average.Cost.per.Academic.Year))
 ```
 
 *Comparing Low & Medium Completion Rates*
