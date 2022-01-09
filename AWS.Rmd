@@ -1,0 +1,40 @@
+---
+title: "AWS"
+author: "Sam Pastoriza, Haley Roberts, Monroe Farris"
+date: "12/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)# For the full source code, see https://github.com/pastorsj/511FinalProject
+if (!require("pacman")) {
+  install.packages("pacman")
+}
+
+pacman::p_load(tidyverse, aws.s3)
+Sys.setenv("PATH" = paste(Sys.getenv("PATH"), "/usr/local/anaconda3/bin", sep = .Platform$path.sep))
+```
+
+## Store Data and Images in S3
+
+```{r}
+#' Stores a file in S3
+#'  
+#' @param file A file
+#' @param suffix The type of data. Used to strip from the filename for cleaning purposes
+#' @param directory The inner directory used to store the data in S3
+storeDataInS3 <- function(file) {
+  print('Storing file in s3')
+  print(file)
+  put_object(file = file, object = paste('college_statistics', file, sep = '/'), bucket = 'datastore.portfolio.sampastoriza.com')
+  print('Uploaded file to S3 successfully')
+}
+
+allFiles <- list.files('data', full.names = TRUE, pattern = '*')
+print('Uploading arm data to S3')
+lapply(allFiles, FUN = function(f) { storeDataInS3(f) })
+
+allFiles <- list.files('visualizations', full.names = TRUE, pattern = '*', recursive = TRUE)
+print('Uploading arm data visualizations to S3')
+lapply(allFiles, FUN = function(f) { storeDataInS3(f) })
+```
